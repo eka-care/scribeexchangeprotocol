@@ -1,0 +1,121 @@
+{
+  "protocol": "scribe-exchange",
+  "protocol_version": "0.1",
+  "supported_versions": [
+    "0.1"
+  ],
+  "deprecated_versions": [],
+  "service": {
+    "name": "Example Scribe (single user, no auth)",
+    "documentation_url": "https://docs.example.com",
+    "support_email": "support@example.com",
+    "security_contact": "security@example.com"
+  },
+  "endpoints": {
+    "base_url": "https://scribe.example.com/v1"
+  },
+  "auth": null,
+  "capabilities": {
+    "sources": {
+      "max_per_session": 20,
+      "kinds": {
+        "audio": {
+          "max": 3,
+          "input": [
+            "chunked",
+            "file"
+          ],
+          "formats": [
+            "audio/webm;codecs=opus",
+            "audio/wav",
+            "audio/ogg;codecs=opus"
+          ],
+          "max_chunk_seconds": 25,
+          "max_seconds": 7200,
+          "inactivity_seconds": 300
+        },
+        "text": {
+          "max": 10,
+          "max_chars": 20000
+        },
+        "file": {
+          "max": 10,
+          "max_bytes": 26214400,
+          "content_types": [
+            "application/pdf",
+            "image/jpeg",
+            "image/png"
+          ],
+          "url_fetch": false
+        },
+        "reference": {
+          "max": 10
+        }
+      }
+    },
+    "document_history": false,
+    "document_forms": [
+      "json",
+      "markdown"
+    ],
+    "document_delivery": [
+      "poll",
+      "webhook"
+    ],
+    "export_formats": [
+      "markdown",
+      "pdf"
+    ]
+  },
+  "models": {
+    "stt": [
+      {
+        "id": "whisper-large-v3",
+        "display_name": "Whisper large v3",
+        "languages": [
+          "en",
+          "hi",
+          "ta"
+        ],
+        "features": {
+          "timestamps": true,
+          "diarization": false
+        },
+        "default": true
+      }
+    ],
+    "structuring": [
+      {
+        "id": "llama-3.3-70b",
+        "display_name": "Llama 3.3 70B (local)",
+        "features": {
+          "streaming": false
+        },
+        "default": true
+      },
+      {
+        "id": "claude-sonnet",
+        "display_name": "Claude Sonnet",
+        "features": {
+          "streaming": true
+        }
+      }
+    ]
+  },
+  "languages": {
+    "supported": [
+      "en",
+      "hi",
+      "ta",
+      "te",
+      "kn",
+      "ml",
+      "bn",
+      "mr",
+      "gu",
+      "pa"
+    ],
+    "auto_detection": true
+  },
+  "profiles": []
+}

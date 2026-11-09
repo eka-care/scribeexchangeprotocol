@@ -1,5 +1,5 @@
 # Examples
 
-Valid payloads, one or more per schema. File name matches the schema: `session.created.json`, `session.success.json`, `error.session_not_found.json`.
+Valid payloads, one or more per schema. File name: `NN-<object>[.variant].json`, matching `../schemas/NN-<object>.schema.json`: `06-source.audio.recording.json`, `04-discovery.no-auth.json`.
 
-Every file here must validate against its schema. CI fails otherwise. If an example in a spec chapter is not also a file here, the chapter is not done.
+Every file here validates against its schema; `python3 ../validate.py` checks them all and CI fails otherwise. An example shown in a spec chapter also lives here as a file.

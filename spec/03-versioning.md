@@ -11,9 +11,9 @@ The protocol version is `MAJOR.MINOR`.
 | Part | Changes when | Example |
 |---|---|---|
 | MAJOR | Something is removed, renamed, or changes meaning. Clients must change. | `1.0` → `2.0` |
-| MINOR | Something is added: a new optional field, a new endpoint, a new event type. Old clients keep working. | `1.0` → `1.1` |
+| MINOR | Something is added: a new optional field, a new endpoint, a new value in an open list. Old clients keep working. | `1.0` → `1.1` |
 
-Before `1.0` nothing is promised: `0.x` versions may break between minors. From `1.0` on, the additive rule below is a guarantee.
+Stability is promised from `1.0`: from then on the additive rule below is a guarantee. `0.x` versions may change between minors.
 
 ## 3.2 The version is in the path
 
@@ -31,7 +31,7 @@ If present, the service MUST behave as that minor, or answer `400 unsupported_ve
 Scribe-Exchange-Version: 1.3
 ```
 
-The header never changes the major; that is always the path.
+The major is always the path.
 
 ## 3.3 The additive rule
 
@@ -39,17 +39,16 @@ Within one major version a service MAY:
 
 - add an optional field to any object;
 - add an endpoint;
-- add an event type;
 - add a value to an open list (for example a new `audio_input` mode), as long as it is declared in discovery.
 
 Within one major version a service MUST NOT:
 
-- remove or rename a field, endpoint or event type;
+- remove or rename a field or endpoint;
 - make an optional field required;
 - change a field's type or meaning;
 - add a value to a **closed** list (status values, error codes are closed; chapters 6, 10, 11, 15 say which).
 
-Because of this rule, **clients MUST ignore fields they do not know** and MUST NOT fail on an unknown event type.
+Because of this rule, **clients MUST ignore fields they do not know** and MUST NOT fail on an unknown value in an open list.
 
 ## 3.4 Declaring versions
 
@@ -89,17 +88,16 @@ Clients SHOULD log the `Scribe-Exchange-Deprecated` header when they first see i
 
 ## 3.6 Profiles and the base
 
-A profile has its own version and declares which base version it requires. A profile may move faster than the base. Discovery lists both (chapter 4, chapter 16).
+A profile has its own version and declares which base version it requires. A profile may move faster than the base. Discovery lists both (chapter 4, chapter 15).
 
 ## 3.7 Header names
 
-Every header this protocol defines is prefixed with the product name, following current practice (`Stripe-Signature`, `GitHub-Api-Version`). The `X-` prefix is not used; it was deprecated by RFC 6648. The prefix is what keeps these names from colliding with anyone else's. Header names are case-insensitive.
+Every header this protocol defines carries the product name as its prefix, following current practice (`Stripe-Signature`, `GitHub-Api-Version`) and RFC 6648. The prefix keeps these names distinct from everyone else's. Header names are case-insensitive.
 
 | Header | Direction | Chapter |
 |---|---|---|
 | `Scribe-Exchange-Version` | request (optional) and response (always) | 3 |
 | `Scribe-Exchange-Deprecated`, `Scribe-Exchange-Sunset` | response, during a deprecation period | 3 |
-| `Scribe-Exchange-Signature` | webhook delivery | 12 |
 
 A profile that needs its own headers prefixes them with its own name.
 

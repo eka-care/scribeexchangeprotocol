@@ -60,7 +60,6 @@
         }
       }
     },
-    "direct_upload": false,
     "document_history": false,
     "document_forms": [
       "json",

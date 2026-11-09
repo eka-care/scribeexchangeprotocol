@@ -1,6 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:scribe-exchange:schema:discovery.schema.json",
+  "$id": "urn:scribe-exchange:schema:discovery",
+  "$comment": "Defined in spec/04-discovery.md §4.2–4.3 (Scribe Exchange Protocol v0.1)",
   "title": "DiscoveryDocument",
   "description": "What a scribe service publishes at /.well-known/scribe-exchange: versions, how to log in, what it can do, which models it offers, which profiles are installed.",
   "type": "object",
@@ -98,34 +99,41 @@
       }
     },
     "auth": {
-      "type": "object",
-      "required": [
-        "authorization_servers"
-      ],
-      "properties": {
-        "authorization_servers": {
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "type": "string",
-            "format": "uri"
-          },
-          "description": "OpenID Connect / OAuth 2 issuers that mint the bearer tokens this service accepts."
+      "oneOf": [
+        {
+          "type": "null"
         },
-        "scopes_supported": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "description": "Optional. Scopes the service understands."
+        {
+          "type": "object",
+          "required": [
+            "authorization_servers"
+          ],
+          "properties": {
+            "authorization_servers": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "format": "uri"
+              },
+              "description": "OpenID Connect / OAuth 2 issuers that mint the bearer tokens this service accepts."
+            },
+            "scopes_supported": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Optional. Scopes the service understands."
+            }
+          }
         }
-      }
+      ],
+      "description": "null: no authentication required. Object: a bearer token is required; these issuers mint it."
     },
     "capabilities": {
       "type": "object",
       "required": [
         "sources",
-        "direct_upload",
         "document_history",
         "document_forms",
         "document_delivery",
@@ -274,10 +282,6 @@
               }
             }
           }
-        },
-        "direct_upload": {
-          "type": "boolean",
-          "description": "Whether signed URLs for direct-to-storage upload are available."
         },
         "document_history": {
           "type": "boolean",

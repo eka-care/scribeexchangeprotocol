@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:scribe-exchange:schema:transcript-segments-page",
+  "$comment": "Defined in spec/08-transcripts.md §8.4 (Scribe Exchange Protocol v0.1)",
+  "title": "TranscriptSegmentsPage",
+  "description": "Response to GET /v1/transcripts/{id}/segments.",
+  "type": "object",
+  "required": [
+    "segments",
+    "next_after_index",
+    "complete"
+  ],
+  "properties": {
+    "segments": {
+      "type": "array",
+      "items": {
+        "$ref": "urn:scribe-exchange:schema:transcript#/$defs/segment"
+      }
+    },
+    "next_after_index": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0,
+      "description": "Pass as after_index for the next page; null when no more segments exist yet."
+    },
+    "complete": {
+      "type": "boolean",
+      "description": "Whether the transcript is finished (no more segments will arrive)."
+    }
+  }
+}

@@ -11,19 +11,18 @@
       "id": "01J9ZN9D0E1F2G3H4J5K6M7N8P",
       "kind": "file",
       "status": "ready",
-      "label": "referral letter",
       "created_at": "2026-10-22T06:05:00.000Z",
       "file": {
         "name": "referral.pdf",
         "content_type": "application/pdf",
-        "size_bytes": 184233
+        "size_bytes": 184233,
+        "url": "https://scribe.example.com/v1/sessions/01J9ZM1A2B3C4D5E6F7G8H9J0K/sources/01J9ZN9D0E1F2G3H4J5K6M7N8P/file"
       }
     },
     {
       "id": "01J9ZN7B8C9D0E1F2G3H4J5K6M",
       "kind": "audio",
       "status": "success",
-      "label": "consultation",
       "created_at": "2026-10-22T06:10:00.000Z",
       "input": "chunked",
       "language_hints": [
@@ -62,13 +61,13 @@
       "failure": null,
       "cancel_reason": null,
       "transcript_id": "01J9ZM9Q8R7S6T5V4W3X2Y1Z0A",
-      "transport": null
+      "transport": null,
+      "audio_url": "https://scribe.example.com/v1/sessions/01J9ZM1A2B3C4D5E6F7G8H9J0K/sources/01J9ZN7B8C9D0E1F2G3H4J5K6M/audio"
     },
     {
       "id": "01J9ZP0E1F2G3H4J5K6M7N8P9Q",
       "kind": "text",
       "status": "ready",
-      "label": "history notes",
       "created_at": "2026-10-22T06:30:00.000Z",
       "text": "Known hypertensive since 2019. On amlodipine 5 mg."
     },
@@ -76,7 +75,6 @@
       "id": "01J9ZP1F2G3H4J5K6M7N8P9Q0R",
       "kind": "reference",
       "status": "ready",
-      "label": "last visit",
       "created_at": "2026-10-22T06:31:00.000Z",
       "reference": {
         "session_id": "01J9ZH0000000000000000S001"

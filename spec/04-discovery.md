@@ -1,6 +1,6 @@
 # 4. Discovery
 
-**Scribe Exchange Protocol v0.1 (draft)** · Schema: [`discovery.schema.json`](../schemas/discovery.schema.json) · Example: [`discovery.json`](../examples/discovery.json)
+**Scribe Exchange Protocol v0.1 (draft)** · Schema: [`04-discovery.schema.json`](../schemas/04-discovery.schema.json) · Example: [`04-discovery.json`](../examples/04-discovery.json)
 
 ---
 
@@ -61,10 +61,9 @@ GET /.well-known/scribe-exchange
         "reference": { "max": 10 }
       }
     },
-    "direct_upload": false,
     "document_history": false,
     "document_forms": ["json", "markdown"],
-    "document_delivery": ["poll", "webhook"],
+    "document_delivery": ["poll"],
     "export_formats": ["markdown", "pdf"]
   },
 
@@ -119,8 +118,9 @@ Required unless marked optional. "Closed list" means only the listed values are 
 
 | Field | Type | Meaning |
 |---|---|---|
-| `authorization_servers` | URL[] | One or more OpenID Connect / OAuth 2 issuers that mint the bearer tokens this service accepts. A client fetches `{issuer}/.well-known/openid-configuration` to learn how to sign in or obtain a server token (chapter 5). At least one. |
-| `scopes_supported` | string[] | Optional. Scopes the service understands, if it uses any. |
+| `auth` | object \| null | `null`: no authentication required; every endpoint is open. An object: a bearer token is required on every endpoint except discovery (chapter 5). |
+| `auth.authorization_servers` | URL[] | One or more OpenID Connect / OAuth 2 issuers that mint the bearer tokens this service accepts. A client fetches `{issuer}/.well-known/openid-configuration` to learn how to sign in or obtain a server token. At least one. |
+| `auth.scopes_supported` | string[] | Optional. Scopes the service understands, if it uses any. |
 
 
 ### `capabilities`
@@ -139,10 +139,9 @@ Required unless marked optional. "Closed list" means only the listed values are 
 | `sources.kinds.file.max_bytes` | integer | Largest file. |
 | `sources.kinds.file.content_types` | string[] | Accepted MIME types for files. |
 | `sources.kinds.file.url_fetch` | boolean | Whether a file may be given as a URL for the service to fetch, instead of uploaded. |
-| `direct_upload` | boolean | Whether the service can hand out signed URLs so audio goes straight to object storage (chapter 7). `false` means all audio goes through the API. |
 | `document_history` | boolean | Whether the service keeps old revisions of documents and serves them (chapter 10). `false` means only the current content is kept. |
-| `document_forms` | string[] | Open list, at least one. The forms **every** document from this service carries (chapter 10). Known ids: `markdown`, `json` (typed sections), `html`, `text`. A deployment may add its own (an editor's native form, for example). The protocol does not require any particular one; a client reads this list and works with what is there. |
-| `document_delivery` | string[] | Open list: `poll` (always present), `webhook`, `stream` (reserved). How a client can learn a document is ready. |
+| `document_forms` | string[] | Open list, at least one. The forms **every** document from this service carries (chapter 10). Known ids: `markdown`, `json` (typed sections), `html`, `text`. A deployment may add its own (an editor's native form, for example). A client reads this list and works with what is there. |
+| `document_delivery` | string[] | Open list: `poll` (always present), `stream` (reserved). How a client can learn a document is ready. |
 | `export_formats` | string[] | Open list, at least one. Export formats available (`markdown`, `pdf`, `docx`, …); depends on the deployment's exporters. |
 
 ### `models`
@@ -158,7 +157,7 @@ Two lists, one per kind. A client shows these to users or passes an `id` when cr
 | `[].features` | object | Optional. For `stt`: `timestamps`, `diarization` (speaker separation). For `structuring`: `streaming`. All booleans. Open list of keys. |
 | `[].default` | boolean | Optional. Exactly one per list SHOULD be `true`. |
 
-Model identifiers are deployment-specific. Nothing in the base protocol names a vendor or a tier.
+Model identifiers are chosen by the deployment and are opaque to clients.
 
 ### `languages`
 
@@ -182,12 +181,11 @@ A profile MAY add further keys inside its own entry. It MUST NOT add keys at the
 ## 4.4 How a client uses it
 
 1. Fetch once; cache for `max-age`.
-2. Read `auth.authorization_servers` and get a token there (chapter 5).
+2. Read `auth`. If it is `null`, call freely; otherwise get a token from one of `auth.authorization_servers` (chapter 5).
 3. Before offering ways to add material, read `sources.kinds`: which kinds exist, how many of each, and for audio which `input` modes and `formats` are accepted and the `max_chunk_seconds`.
 4. Before offering a model choice, read `models.stt` and `models.structuring`.
 5. Read `document_forms` to know what every document will carry, and `export_formats` to know what to offer in an export menu.
-6. Before registering a webhook, check `document_delivery` contains `webhook`.
-7. If it needs a profile, check `profiles[]` for the name and version.
+6. If it needs a profile, check `profiles[]` for the name and version.
 
 
 ---

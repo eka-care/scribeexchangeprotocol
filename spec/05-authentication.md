@@ -4,62 +4,62 @@
 
 ---
 
-## 5.1 What the protocol says, and what it leaves out
+## 5.1 Optional, but standardised when present
 
-The protocol says two things about authentication:
+A service MAY require authentication. Discovery says whether it does:
 
-1. Every request carries a **bearer token** in the `Authorization` header.
-2. The discovery document names the **authorization server** that issues those tokens.
+```json
+"auth": null
+```
+means every endpoint is open (a single-user install, a trusted network, a development setup).
 
-Everything else is the implementation's business: how people sign in (passwords, single sign-on, passkeys), how servers get credentials, who may see what, roles, cookies for a web app, API keys, session timeouts, audit. Two compliant services may do all of that differently and still speak the same protocol.
+```json
+"auth": { "authorization_servers": ["https://auth.example.com"] }
+```
+means requests must carry a bearer token, and that is where tokens come from.
+
+That is the whole of what the protocol says. How people sign in, how servers get credentials, who may see what, roles, cookies, API keys, timeouts, audit: all implementation. The protocol pins the *shape* so that one client works against every service; this is the same position the Model Context Protocol takes.
 
 ## 5.2 Bearer token
+
+When `auth` is present:
 
 ```http
 GET /v1/sessions
 Authorization: Bearer eyJ…
 ```
 
-- The token is **opaque** to the client: never parse it or depend on its format. It may be a JWT or anything else.
+- The token is **opaque**: clients treat it as a string and send it back as given.
 - It MUST NOT appear in URLs, query strings or request bodies.
-- A service MUST accept this header on every endpoint except discovery.
-- The service decides what the token's subject may do. The protocol promises only that a caller can see what it created (chapter 2).
+- A service MUST accept this header on every endpoint except discovery. It MAY accept other mechanisms in addition, for its own clients; protocol clients rely on the bearer token.
+- The service decides what the token's holder may do. The protocol promises only that a caller can see what it created (chapter 2).
 
 ## 5.3 Where tokens come from
 
-Discovery (chapter 4) carries:
-
-```json
-"auth": {
-  "authorization_servers": ["https://auth.example.com"],
-  "scopes_supported": ["scribe-exchange"]
-}
-```
-
-`authorization_servers` lists one or more OpenID Connect / OAuth 2 issuers. A client that knows nothing else about the deployment fetches `{issuer}/.well-known/openid-configuration` (the standard OpenID Connect discovery document) and from there knows how to sign a person in or how to obtain a server-to-server token. This is the same arrangement the Model Context Protocol uses for its servers.
+`auth.authorization_servers` lists one or more OpenID Connect / OAuth 2 issuers. A client fetches `{issuer}/.well-known/openid-configuration` (the standard OpenID Connect discovery document) and from there knows how to proceed:
 
 | Who | Standard flow | In plain words |
 |---|---|---|
 | A person in an app | Authorization code with PKCE | The app sends the browser to the authorization server; the person signs in there; the app receives a token. |
-| Another server | Client credentials | The backend presents its own id and secret to the authorization server and receives a token. No person involved. |
+| Another server | Client credentials | The backend presents its own id and secret to the authorization server and receives a token. |
 
-`scopes_supported` is optional: scopes the service understands, if it uses any. A client that requests none gets whatever the authorization server grants by default.
+`auth.scopes_supported` is optional: scopes the service understands, if it uses any.
 
-The authorization server may be a product the deployment already runs (Keycloak, Google Workspace, Microsoft Entra, Authentik…) or one built into the scribe service itself. The protocol does not care which; a small deployment with no identity system of its own is expected to use the built-in one.
+The authorization server may be a product the deployment already runs (Keycloak, Google Workspace, Microsoft Entra, Authentik…) or one built into the scribe service.
 
-## 5.4 Refresh and expiry
+## 5.4 Expiry
 
-Token lifetime and refresh are the authorization server's affair and follow its OpenID Connect metadata. When a token has expired the service answers `401 token_expired`; the client obtains a new one and retries once. Any other `401` (`authentication_failed`) means the credential is bad; sign in again.
+Token lifetime and refresh follow the authorization server's own metadata. When a token has expired the service answers `401 token_expired`; the client obtains a new one and retries once. Any other `401` (`authentication_failed`) means the credential is bad.
 
 ## 5.5 Errors
 
 | Code | HTTP | When |
 |---|---|---|
-| `authentication_failed` | 401 | Missing, malformed, unknown or revoked token. |
+| `authentication_failed` | 401 | `auth` is required and the token is missing, malformed, unknown or revoked. |
 | `token_expired` | 401 | Token past its expiry. Get a new one and retry. |
-| `forbidden` | 403 | Valid token; the service's policy does not allow this action on this object. |
+| `forbidden` | 403 | Valid token (or no auth required); the service's policy does not allow this action on this object. |
 
-Full error shape: chapter 14.
+Full error shape: chapter 13.
 
 ---
 

@@ -1,0 +1,26 @@
+{
+  "segments": [
+    {
+      "index": 16,
+      "text": "Namaste, kya takleef hai?",
+      "start_ms": 61000,
+      "end_ms": 63400,
+      "speaker": "S1",
+      "language": "hi",
+      "confidence": 0.97,
+      "chunk_index": 2
+    },
+    {
+      "index": 17,
+      "text": "Teen din se sar dard hai.",
+      "start_ms": 64120,
+      "end_ms": 66880,
+      "speaker": "S2",
+      "language": "hi",
+      "confidence": 0.93,
+      "chunk_index": 2
+    }
+  ],
+  "next_after_index": 17,
+  "complete": false
+}
