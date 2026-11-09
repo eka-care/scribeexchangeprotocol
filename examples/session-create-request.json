@@ -1,0 +1,16 @@
+{
+  "metadata": {
+    "visit_ref": "V-2026-1042"
+  },
+  "sources": [
+    {
+      "kind": "audio",
+      "input": "chunked",
+      "language_hints": [
+        "hi",
+        "en"
+      ],
+      "label": "consultation"
+    }
+  ]
+}

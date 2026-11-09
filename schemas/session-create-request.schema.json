@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:scribe-exchange:schema:session-create-request.schema.json",
+  "title": "SessionCreateRequest",
+  "description": "Body of POST /v1/sessions. Both fields optional. sources is a shortcut: each entry is created with the session.",
+  "type": "object",
+  "properties": {
+    "metadata": { "type": "object", "description": "Client pass-through, max 4 KB." },
+    "sources": { "type": "array", "items": { "$ref": "source-create-request.schema.json" }, "description": "Sources to create together with the session. Only JSON-bodied kinds (audio, text, reference, or file by URL)." }
+  },
+  "additionalProperties": false
+}

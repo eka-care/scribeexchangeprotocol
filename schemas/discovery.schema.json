@@ -1,0 +1,438 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:scribe-exchange:schema:discovery.schema.json",
+  "title": "DiscoveryDocument",
+  "description": "What a scribe service publishes at /.well-known/scribe-exchange: versions, how to log in, what it can do, which models it offers, which profiles are installed.",
+  "type": "object",
+  "required": [
+    "protocol",
+    "protocol_version",
+    "supported_versions",
+    "service",
+    "endpoints",
+    "auth",
+    "capabilities",
+    "models",
+    "languages",
+    "profiles"
+  ],
+  "properties": {
+    "protocol": {
+      "type": "string",
+      "const": "scribe-exchange",
+      "description": "Always the string \"scribe-exchange\"."
+    },
+    "protocol_version": {
+      "$ref": "#/$defs/version",
+      "description": "Newest protocol version this service implements."
+    },
+    "supported_versions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/version"
+      },
+      "description": "Every major version still served, each with its newest minor."
+    },
+    "deprecated_versions": {
+      "type": "array",
+      "default": [],
+      "items": {
+        "type": "object",
+        "required": [
+          "version",
+          "sunset_date"
+        ],
+        "properties": {
+          "version": {
+            "$ref": "#/$defs/version"
+          },
+          "sunset_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Day the version stops being served (YYYY-MM-DD)."
+          },
+          "migration_guide": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      },
+      "description": "Versions announced for removal."
+    },
+    "service": {
+      "type": "object",
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Human-readable name of this deployment."
+        },
+        "documentation_url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "support_email": {
+          "type": "string",
+          "format": "email"
+        },
+        "security_contact": {
+          "type": "string",
+          "description": "Where to report a vulnerability (email or URL)."
+        }
+      }
+    },
+    "endpoints": {
+      "type": "object",
+      "required": [
+        "base_url"
+      ],
+      "properties": {
+        "base_url": {
+          "type": "string",
+          "format": "uri",
+          "description": "Where /v1/ lives. All paths in the spec are relative to this."
+        }
+      }
+    },
+    "auth": {
+      "type": "object",
+      "required": [
+        "authorization_servers"
+      ],
+      "properties": {
+        "authorization_servers": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "format": "uri"
+          },
+          "description": "OpenID Connect / OAuth 2 issuers that mint the bearer tokens this service accepts."
+        },
+        "scopes_supported": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Optional. Scopes the service understands."
+        }
+      }
+    },
+    "capabilities": {
+      "type": "object",
+      "required": [
+        "sources",
+        "direct_upload",
+        "document_history",
+        "document_forms",
+        "document_delivery",
+        "export_formats"
+      ],
+      "properties": {
+        "sources": {
+          "type": "object",
+          "required": [
+            "max_per_session",
+            "kinds"
+          ],
+          "description": "What may be put into a session and the limits per kind. audio must be present.",
+          "properties": {
+            "max_per_session": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Total sources of all kinds one session may hold."
+            },
+            "kinds": {
+              "type": "object",
+              "required": [
+                "audio"
+              ],
+              "description": "One entry per accepted source kind. A kind not listed is refused.",
+              "properties": {
+                "audio": {
+                  "type": "object",
+                  "required": [
+                    "max",
+                    "input",
+                    "formats",
+                    "max_chunk_seconds",
+                    "max_seconds",
+                    "inactivity_seconds"
+                  ],
+                  "properties": {
+                    "max": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "input": {
+                      "type": "array",
+                      "minItems": 1,
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Open list: chunked, file, stream (reserved). Must contain chunked or file."
+                    },
+                    "formats": {
+                      "type": "array",
+                      "minItems": 1,
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Accepted audio MIME types."
+                    },
+                    "max_chunk_seconds": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "description": "Longest chunk. Default 25."
+                    },
+                    "max_seconds": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "description": "Longest single recording."
+                    },
+                    "inactivity_seconds": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "description": "No chunk for this long ends the recording."
+                    }
+                  }
+                },
+                "text": {
+                  "type": "object",
+                  "required": [
+                    "max",
+                    "max_chars"
+                  ],
+                  "properties": {
+                    "max": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "max_chars": {
+                      "type": "integer",
+                      "minimum": 1
+                    }
+                  }
+                },
+                "file": {
+                  "type": "object",
+                  "required": [
+                    "max",
+                    "max_bytes",
+                    "content_types",
+                    "url_fetch"
+                  ],
+                  "properties": {
+                    "max": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "max_bytes": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "content_types": {
+                      "type": "array",
+                      "minItems": 1,
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "url_fetch": {
+                      "type": "boolean"
+                    }
+                  }
+                },
+                "reference": {
+                  "type": "object",
+                  "required": [
+                    "max"
+                  ],
+                  "properties": {
+                    "max": {
+                      "type": "integer",
+                      "minimum": 1
+                    }
+                  }
+                }
+              },
+              "additionalProperties": {
+                "type": "object",
+                "required": [
+                  "max"
+                ],
+                "properties": {
+                  "max": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                },
+                "description": "A kind this version does not define; must at least carry max."
+              }
+            }
+          }
+        },
+        "direct_upload": {
+          "type": "boolean",
+          "description": "Whether signed URLs for direct-to-storage upload are available."
+        },
+        "document_history": {
+          "type": "boolean",
+          "description": "Whether old revisions of documents are kept and served. false: only current content."
+        },
+        "document_forms": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          },
+          "description": "Open list of the forms every document carries. Known ids: markdown, json, html, text. A deployment may add its own."
+        },
+        "document_delivery": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          },
+          "contains": {
+            "const": "poll"
+          },
+          "description": "Open list: poll (always), webhook, stream (reserved)."
+        },
+        "export_formats": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          },
+          "description": "Open list of export formats this deployment offers."
+        }
+      }
+    },
+    "models": {
+      "type": "object",
+      "required": [
+        "stt",
+        "structuring"
+      ],
+      "properties": {
+        "stt": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/model"
+          },
+          "description": "Speech-to-text models the deployer has enabled."
+        },
+        "structuring": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/model"
+          },
+          "description": "Models that write documents, enabled by the deployer."
+        }
+      }
+    },
+    "languages": {
+      "type": "object",
+      "required": [
+        "supported",
+        "auto_detection"
+      ],
+      "properties": {
+        "supported": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/language"
+          }
+        },
+        "auto_detection": {
+          "type": "boolean",
+          "description": "Whether the service can detect the spoken language without a hint."
+        }
+      }
+    },
+    "profiles": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "version",
+          "base_url"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_-]*$"
+          },
+          "version": {
+            "$ref": "#/$defs/version"
+          },
+          "base_url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "documentation_url": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "additionalProperties": true
+      },
+      "description": "Installed profiles. Empty when none."
+    }
+  },
+  "$defs": {
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+$",
+      "description": "MAJOR.MINOR"
+    },
+    "language": {
+      "type": "string",
+      "pattern": "^[a-zA-Z]{2,3}(-[a-zA-Z0-9]{2,8})*$",
+      "description": "BCP 47 language tag, e.g. en, hi, en-IN."
+    },
+    "model": {
+      "type": "object",
+      "required": [
+        "id",
+        "display_name"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Identifier to send in requests. Opaque to clients."
+        },
+        "display_name": {
+          "type": "string"
+        },
+        "languages": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/language"
+          },
+          "description": "Languages this model handles. Absent means any supported language."
+        },
+        "features": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "boolean"
+          },
+          "description": "Open list of boolean flags. stt: timestamps, diarization. structuring: streaming."
+        },
+        "default": {
+          "type": "boolean",
+          "description": "The model used when a request names none. One per list."
+        }
+      }
+    }
+  }
+}

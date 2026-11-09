@@ -1,0 +1,42 @@
+{
+  "id": "01J9ZM1A2B3C4D5E6F7G8H9J0K",
+  "status": "active",
+  "metadata": {
+    "visit_ref": "V-2026-1042"
+  },
+  "created_at": "2026-10-22T06:10:00.000Z",
+  "archived_at": null,
+  "sources": [
+    {
+      "id": "01J9ZN7B8C9D0E1F2G3H4J5K6M",
+      "kind": "audio",
+      "status": "created",
+      "label": "consultation",
+      "created_at": "2026-10-22T06:10:00.000Z",
+      "input": "chunked",
+      "language_hints": [
+        "hi",
+        "en"
+      ],
+      "stt_model": "whisper-large-v3",
+      "recording_started_at": null,
+      "recording_ended_at": null,
+      "completed_at": null,
+      "chunks": {
+        "received": [],
+        "expected": null,
+        "transcribed": 0
+      },
+      "warnings": [],
+      "failure": null,
+      "cancel_reason": null,
+      "transcript_id": null,
+      "transport": {
+        "kind": "http-put",
+        "method": "PUT",
+        "url_template": "https://scribe.example.com/v1/sessions/01J9ZM1A2B3C4D5E6F7G8H9J0K/sources/01J9ZN7B8C9D0E1F2G3H4J5K6M/chunks/{n}"
+      }
+    }
+  ],
+  "document_ids": []
+}

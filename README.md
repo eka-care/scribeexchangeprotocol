@@ -1,39 +1,38 @@
-# Vaarta
+# Scribe Exchange Protocol
 
-**Open-source scribe software: a spoken conversation → a structured, editable document, in any field, using templates you choose, on servers you control.**
+The open rules for how a **client** talks to a **scribe service**: a server that takes recordings, notes and files, turns speech into text, and turns all of it into structured documents using templates.
 
-"Vaarta" (वार्ता) means "conversation" in Hindi.
+The protocol is vendor-neutral and field-neutral. Any server may implement it; any client that follows it works against any compliant server. Lipi is the reference implementation, one of many.
 
-> Status: **pre-1.0, under construction.** Nothing here is stable yet. The protocol, plugin API and SDK are promised stable from v1.0 onward, not before.
+> Status: **v0.1 draft, being written.** Nothing is stable before v1.0.
 
-## What is in this repository
+## Layout
 
-| Folder | What it holds | Status |
+| Folder | What | Who reads it |
 |---|---|---|
-| `protocol/` | The **Vaarta Protocol**: the published rules for how any client talks to any scribe service. Written spec (`spec/`), JSON schemas (`schemas/`), examples (`examples/`). Vendor-neutral; the Vaarta server is its reference implementation. | Phase 0, being written |
-| `docs/` | Design documents: what Vaarta is, architecture (overall, backend, frontend), the phased plan, and the running decision log. Read `docs/00-start-here.md` first. | Current |
-| `packages/` | Server, plugin SDK, bundled plugins, client SDK, design system, reference web app. | Not started (Phase 1+) |
+| `spec/` | Numbered Markdown chapters, in plain words. Each object and endpoint is described in prose with its fields. Start at `spec/01-introduction.md`; the chapter plan is `spec/README.md`. | People |
+| `schemas/` | One JSON Schema file per object. **The machine source of truth**: if prose and schema disagree, the schema wins and the prose is fixed. | Programs, and people checking exact shapes |
+| `examples/` | Valid example payloads. Every example is checked against its schema in CI. | Both |
+| `openapi.yaml` | Generated from `schemas/` plus the endpoint list. Never edited by hand. | Tools |
+| `DECISIONS.md` | Why the protocol is the way it is, one numbered entry per decision. | Contributors |
 
-## The five pieces (each usable alone)
+## Checking
 
-1. **Vaarta Protocol** — spec + schemas. No code.
-2. **Server** — Python, built on [echo](https://github.com/eka-care/echo-sdk), Postgres + file storage.
-3. **Client SDK** — TypeScript, speaks the protocol against any compliant server.
-4. **Reference UI** — React web app built only from the Client SDK.
-5. **Plugin SDK** — what plugin authors import.
+`python3 validate.py` checks every file in `examples/` against its schema (needs `pip install jsonschema referencing`). CI runs it on every change.
 
-## Who it is for
+## Rules
 
-- **Deployers** who need documents from conversations and cannot send recordings to someone else's cloud (hospitals, government, courts, anyone under data-residency rules).
-- **Builders** who extend Vaarta with plugins, or fork it to make their own product.
-- **Protocol implementers** who write their own server or client against the protocol without using this code.
+1. **Versioning.** The major version is in the path: `/v1/…`. Within a major version only additive changes are allowed (new optional fields, new endpoints, new values in open lists); nothing is removed or renamed. A breaking change means `/v2/`.
+2. **Profiles add, never change.** A *profile* is an extension for one field. It may add objects, fields, templates and routes under `/v1/profiles/<name>/`. It may not change a base object.
+3. **Nothing field-specific, nothing vendor-specific** in the base. If a word only makes sense in one field or for one company, it belongs in a profile or in a product.
+4. **The protocol stops at the wire.** How a service logs people in, who may see what, how it stores things, which models it runs: implementation. The protocol says what travels between client and service.
+5. **RFC 2119 words.** MUST, SHOULD, MAY have their standard meaning: required, recommended, optional.
+6. **Plain words.** Every technical term is explained the first time it appears in a chapter.
 
-Medical is one use of Vaarta, not Vaarta itself. The healthcare version (MedScribeAlliance profile, Aarogya Vaarta, EkaScribe) is built on top as plugins. Nothing medical lives in the core.
+## Names
 
-## How the docs are organised
-
-Everything is written in plain words on purpose. Each technical term is explained the first time it appears. Decisions are numbered once across all documents and never renumbered; the log is `docs/decisions.md`.
+The short handle is `scribe-exchange` everywhere a short name is needed: `/.well-known/scribe-exchange`, `Scribe-Exchange-*` headers, package names. The spec does not use an acronym.
 
 ## Licence
 
-Apache-2.0, for everything in this repository including the protocol text and schemas. Contributions under the Developer Certificate of Origin (DCO). Maintained by Eka Care.
+Apache-2.0. Contributions under the Developer Certificate of Origin (DCO). Maintained by Eka Care.
