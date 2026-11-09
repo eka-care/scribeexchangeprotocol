@@ -1,0 +1,89 @@
+{
+  "id": "01J9ZM1A2B3C4D5E6F7G8H9J0K",
+  "status": "active",
+  "metadata": {
+    "visit_ref": "V-2026-1042"
+  },
+  "created_at": "2026-10-22T06:00:00.000Z",
+  "archived_at": null,
+  "sources": [
+    {
+      "id": "01J9ZN9D0E1F2G3H4J5K6M7N8P",
+      "kind": "file",
+      "status": "ready",
+      "label": "referral letter",
+      "created_at": "2026-10-22T06:05:00.000Z",
+      "file": {
+        "name": "referral.pdf",
+        "content_type": "application/pdf",
+        "size_bytes": 184233
+      }
+    },
+    {
+      "id": "01J9ZN7B8C9D0E1F2G3H4J5K6M",
+      "kind": "audio",
+      "status": "success",
+      "label": "consultation",
+      "created_at": "2026-10-22T06:10:00.000Z",
+      "input": "chunked",
+      "language_hints": [
+        "hi",
+        "en"
+      ],
+      "stt_model": "whisper-large-v3",
+      "recording_started_at": "2026-10-22T06:10:04.120Z",
+      "recording_ended_at": "2026-10-22T06:24:31.880Z",
+      "completed_at": "2026-10-22T06:24:58.402Z",
+      "chunks": {
+        "received": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "expected": 12,
+        "transcribed": 11
+      },
+      "warnings": [
+        {
+          "code": "chunk_skipped",
+          "message": "Chunk 7 could not be decoded and was skipped.",
+          "chunk_index": 7
+        }
+      ],
+      "failure": null,
+      "cancel_reason": null,
+      "transcript_id": "01J9ZM9Q8R7S6T5V4W3X2Y1Z0A",
+      "transport": null
+    },
+    {
+      "id": "01J9ZP0E1F2G3H4J5K6M7N8P9Q",
+      "kind": "text",
+      "status": "ready",
+      "label": "history notes",
+      "created_at": "2026-10-22T06:30:00.000Z",
+      "text": "Known hypertensive since 2019. On amlodipine 5 mg."
+    },
+    {
+      "id": "01J9ZP1F2G3H4J5K6M7N8P9Q0R",
+      "kind": "reference",
+      "status": "ready",
+      "label": "last visit",
+      "created_at": "2026-10-22T06:31:00.000Z",
+      "reference": {
+        "session_id": "01J9ZH0000000000000000S001"
+      }
+    }
+  ],
+  "document_ids": [
+    "01J9ZP3C4D5E6F7G8H9J0K1M2N"
+  ]
+}

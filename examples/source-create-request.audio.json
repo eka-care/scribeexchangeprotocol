@@ -1,0 +1,9 @@
+{
+  "kind": "audio",
+  "input": "chunked",
+  "language_hints": [
+    "hi"
+  ],
+  "stt_model": "whisper-large-v3",
+  "label": "exam recording"
+}

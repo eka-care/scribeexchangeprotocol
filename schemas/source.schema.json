@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:scribe-exchange:schema:source.schema.json",
+  "title": "Source",
+  "description": "One thing put into a session: a recording (audio), a pasted note (text), a file, or a pointer to earlier work (reference). Only audio has a lifecycle. Immutable except label.",
+  "type": "object",
+  "required": ["id", "kind", "status", "label", "created_at"],
+  "properties": {
+    "id": { "$ref": "#/$defs/ulid" },
+    "kind": { "type": "string", "description": "Open list. This version defines audio, text, file, reference. Clients ignore kinds they do not know." },
+    "status": { "type": "string", "enum": ["ready", "failed", "created", "recording", "processing", "success", "cancelled"], "description": "Closed list. ready | failed for non-audio kinds; created → recording → processing → success | failed | cancelled for audio." },
+    "label": { "type": ["string", "null"], "maxLength": 200, "description": "Display name chosen by the client. The only editable field. Not used for generation." },
+    "created_at": { "type": "string", "format": "date-time" },
+
+    "text": { "type": "string", "description": "text kind: the text itself." },
+    "file": {
+      "type": "object",
+      "required": ["name", "content_type", "size_bytes"],
+      "properties": {
+        "name": { "type": "string" },
+        "content_type": { "type": "string" },
+        "size_bytes": { "type": "integer", "minimum": 0 }
+      },
+      "description": "file kind. Bytes via GET .../sources/{id}/content."
+    },
+    "reference": {
+      "type": "object",
+      "properties": {
+        "session_id": { "$ref": "#/$defs/ulid" },
+        "document_id": { "$ref": "#/$defs/ulid" }
+      },
+      "oneOf": [{ "required": ["session_id"] }, { "required": ["document_id"] }],
+      "description": "reference kind: exactly one of session_id or document_id, that the caller may see."
+    },
+
+    "input": { "type": "string", "enum": ["chunked", "file"], "description": "audio kind. Closed list in this version; stream reserved." },
+    "language_hints": { "type": "array", "items": { "$ref": "#/$defs/language" }, "description": "audio kind. Empty = detect." },
+    "stt_model": { "type": "string", "description": "audio kind. Id from models.stt." },
+    "recording_started_at": { "type": ["string", "null"], "format": "date-time" },
+    "recording_ended_at": { "type": ["string", "null"], "format": "date-time" },
+    "completed_at": { "type": ["string", "null"], "format": "date-time" },
+    "chunks": {
+      "type": "object",
+      "required": ["received", "expected", "transcribed"],
+      "properties": {
+        "received": { "type": "array", "items": { "type": "integer", "minimum": 0 }, "description": "Indexes held, ascending." },
+        "expected": { "type": ["integer", "null"], "minimum": 1, "description": "Total announced at end, or null." },
+        "transcribed": { "type": "integer", "minimum": 0 }
+      },
+      "description": "audio kind."
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["code", "message"],
+        "properties": {
+          "code": { "type": "string", "enum": ["max_duration_reached", "auto_ended", "chunk_skipped", "chunks_missing"] },
+          "message": { "type": "string" },
+          "chunk_index": { "type": "integer", "minimum": 0 }
+        }
+      },
+      "description": "audio kind. Problems that did not stop the recording."
+    },
+    "failure": {
+      "type": ["object", "null"],
+      "required": ["code", "message"],
+      "properties": {
+        "code": { "type": "string", "enum": ["transcription_failed", "audio_unreadable", "language_unsupported", "internal_error", "fetch_failed"] },
+        "message": { "type": "string" }
+      },
+      "description": "Set when status is failed. fetch_failed is for a file given by URL."
+    },
+    "cancel_reason": { "type": ["string", "null"], "enum": ["client", "no_audio", null], "description": "audio kind. Set when cancelled." },
+    "transcript_id": { "oneOf": [{ "$ref": "#/$defs/ulid" }, { "type": "null" }], "description": "audio kind. Set once the transcript exists." },
+    "transport": {
+      "oneOf": [{ "$ref": "#/$defs/transport" }, { "type": "null" }],
+      "description": "audio kind. Where and how to send audio. Present while created or recording; null after."
+    }
+  },
+  "allOf": [
+    { "if": { "properties": { "kind": { "const": "audio" } }, "required": ["kind"] },
+      "then": { "required": ["input", "language_hints", "stt_model", "recording_started_at", "recording_ended_at", "completed_at", "chunks", "warnings", "failure", "cancel_reason", "transcript_id", "transport"],
+                "properties": { "status": { "enum": ["created", "recording", "processing", "success", "failed", "cancelled"] } } } },
+    { "if": { "properties": { "kind": { "const": "text" } }, "required": ["kind"] }, "then": { "required": ["text"], "properties": { "status": { "enum": ["ready", "failed"] } } } },
+    { "if": { "properties": { "kind": { "const": "file" } }, "required": ["kind"] }, "then": { "required": ["file"], "properties": { "status": { "enum": ["ready", "failed", "processing"] } } } },
+    { "if": { "properties": { "kind": { "const": "reference" } }, "required": ["kind"] }, "then": { "required": ["reference"], "properties": { "status": { "enum": ["ready", "failed"] } } } }
+  ],
+  "$defs": {
+    "ulid": { "type": "string", "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$" },
+    "language": { "type": "string", "pattern": "^[a-zA-Z]{2,3}(-[a-zA-Z0-9]{2,8})*$" },
+    "transport": {
+      "type": "object",
+      "required": ["kind", "method"],
+      "properties": {
+        "kind": { "type": "string", "enum": ["http-put", "http-upload", "signed-put", "signed-post", "websocket"] },
+        "method": { "type": "string", "enum": ["PUT", "POST"] },
+        "url": { "type": "string", "format": "uri" },
+        "url_template": { "type": "string", "description": "Contains the literal {n} to replace with the chunk index." },
+        "expires_at": { "type": "string", "format": "date-time" },
+        "headers": { "type": "object", "additionalProperties": { "type": "string" } },
+        "fields": { "type": "object", "additionalProperties": { "type": "string" } }
+      }
+    }
+  }
+}
