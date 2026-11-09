@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:scribe-exchange:schema:session-update-request",
+  "$comment": "Defined in spec/06-sessions.md \u00a76.4 (Scribe Exchange Protocol v0.1)",
+  "title": "SessionUpdateRequest",
+  "description": "Body of PATCH /v1/sessions/{id}. metadata replaces the whole object; status may only become archived. Refused on an archived session.",
+  "type": "object",
+  "minProperties": 1,
+  "properties": {
+    "metadata": {
+      "type": "object",
+      "description": "Client pass-through, max 4 KB. Replaces the existing object."
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "archived"
+      ]
+    }
+  },
+  "additionalProperties": false
+}

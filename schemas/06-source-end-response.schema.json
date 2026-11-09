@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:scribe-exchange:schema:source-end-response",
+  "$comment": "Defined in spec/06-sessions.md §6.8 (Scribe Exchange Protocol v0.1)",
+  "title": "SourceEndResponse",
+  "description": "Response to POST /v1/sessions/{id}/sources/{sid}/end on an audio source. If gaps is non-empty the source stays in recording; the client re-sends those chunks and calls end again.",
+  "type": "object",
+  "required": [
+    "status",
+    "chunks",
+    "gaps"
+  ],
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": [
+        "recording",
+        "processing",
+        "success",
+        "failed",
+        "cancelled"
+      ]
+    },
+    "chunks": {
+      "type": "object",
+      "required": [
+        "received",
+        "expected"
+      ],
+      "properties": {
+        "received": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "expected": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1
+        }
+      }
+    },
+    "gaps": {
+      "type": "array",
+      "items": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "description": "Indexes the service does not have. Empty when the source moved on."
+    }
+  }
+}

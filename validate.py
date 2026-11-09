@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Check every example in examples/ against its schema in schemas/.
 
-Mapping: examples/<name>[.variant].json -> schemas/<name>.schema.json
-(the part before the first dot is the schema name).
+Mapping: examples/NN-<name>[.variant].json -> schemas/NN-<name>.schema.json
+(NN is the spec chapter; the part before the first dot is the schema name).
+Every schema carries a $comment naming the chapter and section that defines it.
 Usage: python3 validate.py   (needs: pip install jsonschema)
 """
 import json
@@ -24,10 +25,11 @@ def main() -> int:
         schema = json.loads(path.read_text())
         Draft202012Validator.check_schema(schema)
         name = path.name.removesuffix(".schema.json")
+        if "$comment" not in schema:
+            print(f"FAIL  {path.name}: missing $comment naming the spec chapter")
+            return 1
         schemas[name] = schema
         resources.append((schema["$id"], Resource.from_contents(schema)))
-        # also allow bare relative refs like "principal.schema.json"
-        resources.append((path.name, Resource.from_contents(schema)))
     registry = Registry().with_resources(resources)
 
     failures = 0

@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:scribe-exchange:schema:session-create-request",
+  "$comment": "Defined in spec/06-sessions.md §6.3 (Scribe Exchange Protocol v0.1)",
+  "title": "SessionCreateRequest",
+  "description": "Body of POST /v1/sessions. Sources are added afterwards with POST /v1/sessions/{id}/sources.",
+  "type": "object",
+  "properties": {
+    "metadata": {
+      "type": "object",
+      "description": "Client pass-through, max 4 KB."
+    }
+  },
+  "additionalProperties": false
+}

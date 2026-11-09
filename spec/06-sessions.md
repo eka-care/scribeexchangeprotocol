@@ -1,6 +1,6 @@
 # 6. Sessions and sources
 
-**Scribe Exchange Protocol v0.1 (draft)** · Schemas: [`session.schema.json`](../schemas/session.schema.json), [`source.schema.json`](../schemas/source.schema.json), [`session-create-request.schema.json`](../schemas/session-create-request.schema.json), [`source-create-request.schema.json`](../schemas/source-create-request.schema.json), [`source-end-response.schema.json`](../schemas/source-end-response.schema.json)
+**Scribe Exchange Protocol v0.1 (draft)** · Schemas: [`06-session.schema.json`](../schemas/06-session.schema.json), [`06-source.schema.json`](../schemas/06-source.schema.json), [`06-session-create-request.schema.json`](../schemas/06-session-create-request.schema.json), [`06-session-update-request.schema.json`](../schemas/06-session-update-request.schema.json), [`06-source-create-request.schema.json`](../schemas/06-source-create-request.schema.json), [`06-source-end-response.schema.json`](../schemas/06-source-end-response.schema.json)
 
 ---
 
@@ -8,9 +8,7 @@
 
 A **session** is a folder. You open it and, over minutes or days, you put **sources** into it: a recording, a second recording, a pasted note, a PDF, a pointer to an earlier session. Whenever you like you ask for a **document** (chapter 10); the writer reads the sources that are ready at that moment.
 
-The session itself does no work. Work happens on sources (a recording is transcribed) and on documents (a template is applied). So the session has almost no state; sources and documents carry the states.
-
-Voice is the most common source and the only one with a real lifecycle. It is not special otherwise: a session with no audio at all is a normal session.
+The session is the container. Work happens on sources (a recording is transcribed) and on documents (a template is applied), and they carry the states. A session may hold several recordings, one, or none at all.
 
 ## 6.2 The session object
 
@@ -21,7 +19,7 @@ Voice is the most common source and the only one with a real lifecycle. It is no
   "metadata": { "visit_ref": "V-2026-1042" },
   "created_at": "2026-10-22T06:10:00.000Z",
   "archived_at": null,
-  "sources": [ { "id": "01J9ZN7B…", "kind": "audio", "status": "success", "label": "consultation", "…": "…" } ],
+  "sources": [ { "id": "01J9ZN7B…", "kind": "audio", "status": "success", "…": "…" } ],
   "document_ids": ["01J9ZP3C…"]
 }
 ```
@@ -29,8 +27,8 @@ Voice is the most common source and the only one with a real lifecycle. It is no
 | Field | Type | Meaning |
 |---|---|---|
 | `id` | ULID | |
-| `status` | string | Closed list: `active` (sources and documents may be added), `archived` (read-only). No outcome, no timeout: a session stays `active` as long as its owner wants. |
-| `metadata` | object | Client pass-through, returned unchanged everywhere the session appears, including in events. Max 4 KB. The service MUST NOT interpret it. |
+| `status` | string | Closed list: `active` (sources and documents may be added), `archived` (read-only). A session stays `active` as long as its owner wants. |
+| `metadata` | object | Client pass-through, returned unchanged everywhere the session appears. Max 4 KB. The service MUST NOT interpret it. |
 | `created_at` | timestamp | |
 | `archived_at` | timestamp \| null | |
 | `sources` | Source[] | Every source in the session, in creation order (6.4). |
@@ -44,13 +42,10 @@ Voice is the most common source and the only one with a real lifecycle. It is no
 POST /v1/sessions
 Content-Type: application/json
 
-{
-  "metadata": { "visit_ref": "V-2026-1042" },
-  "sources": [ { "kind": "audio", "input": "chunked", "language_hints": ["hi", "en"] } ]
-}
+{ "metadata": { "visit_ref": "V-2026-1042" } }
 ```
 
-Both fields optional. `sources` is a shortcut: each entry is a source-create request (6.5) and is created with the session, so a recording app starts a session and its recording in one round trip. Response `201` with the session; an audio source in it carries its `transport` ready to use.
+`metadata` is optional. Response `201` with the session: `active`, empty. Sources are added with their own call (6.5); the first one is usually a recording.
 
 ### Get, list
 
@@ -61,13 +56,19 @@ GET /v1/sessions?status=active&created_after=2026-10-01T00:00:00Z&limit=50&curso
 
 List returns the sessions visible to the caller (at least the ones it created; anything wider is the service's policy). Filters: `status`, `created_after`, `created_before`. Pagination: `limit` (default 50, max 200) and an opaque `cursor`; the response carries `next_cursor` or `null`. `GET /v1/sessions/{id}` includes `sources`; the list omits them (`source_count` instead).
 
-### Archive
+### Update, archive
 
 ```http
-POST /v1/sessions/{id}/archive
+PATCH /v1/sessions/{id}
+{ "metadata": { "visit_ref": "V-2026-1042", "patient_ref": "P-77" }, "status": "archived" }
 ```
 
-Status becomes `archived`; `archived_at` set. No new sources or documents may be added; everything stays readable. Audio sources still `recording` are ended by the service as if `end` had been called (6.8). `200` with the session. Already archived: `200`, no change.
+Both fields optional, at least one present. `200` with the session.
+
+- `metadata` replaces the whole object (same 4 KB limit).
+- `status`: the only accepted value is `archived`. `archived_at` is set; audio sources still `recording` are ended by the service as if `end` had been called (6.8). Already archived: no change.
+
+Once archived, a session is read-only: no new sources or documents, no further `PATCH` (`409 invalid_state`). `DELETE` still works.
 
 ### Delete
 
@@ -75,20 +76,19 @@ Status becomes `archived`; `archived_at` set. No new sources or documents may be
 DELETE /v1/sessions/{id}
 ```
 
-Removes the session and everything in it: sources and their audio, transcripts, documents. Chapter 13 says what "removed" means. `202` with a job id, or `204` if done at once.
+Removes the session and everything in it: sources and their audio, transcripts, documents. Chapter 12 says what "removed" means. `202` with a job id, or `204` if done at once.
 
 ## 6.4 The source object
 
-A source is one thing put into a session. Every source has the common fields below; `audio` adds its own (6.7).
+A source is one thing put into a session. Every source has the common fields below; `audio` adds its own (6.7). A source is immutable: to change one, delete it and add a new one.
 
 ```json
 {
   "id": "01J9ZN7B8C9D0E1F2G3H4J5K6M",
   "kind": "file",
   "status": "ready",
-  "label": "referral letter",
   "created_at": "2026-10-22T06:05:00.000Z",
-  "file": { "name": "referral.pdf", "content_type": "application/pdf", "size_bytes": 184233 }
+  "file": { "name": "referral.pdf", "content_type": "application/pdf", "size_bytes": 184233, "url": "https://scribe.example.com/v1/sessions/01J9ZM1A…/sources/01J9ZN9D…/file" }
 }
 ```
 
@@ -97,16 +97,15 @@ A source is one thing put into a session. Every source has the common fields bel
 | `id` | ULID | |
 | `kind` | string | **Open list.** This version defines `audio`, `text`, `file`, `reference`. A service accepts the kinds it lists in discovery (`capabilities.sources.kinds`); clients MUST ignore kinds they do not know. |
 | `status` | string | Closed list: `ready`, `failed`, and for `audio` also `created`, `recording`, `processing`, `success`, `cancelled` (6.7). |
-| `label` | string \| null | Display name chosen by the client ("exam recording", "referral letter"). The only editable field. Not used for generation. |
 | `created_at` | timestamp | |
 | `text` | string | `text` kind: the text itself. Max length from discovery. |
-| `file` | object | `file` kind: `name`, `content_type`, `size_bytes`. The bytes are fetched with `GET …/sources/{id}/content`. |
+| `file` | object | `file` kind: `name`, `content_type`, `size_bytes`, `url`. The `url` is where the bytes can be fetched; it may be an API path (bearer token applies) or a short-lived signed storage URL. |
 | `reference` | object | `reference` kind: exactly one of `session_id`, `document_id`, pointing at something the caller may see. |
 | *(audio fields)* | | 6.7 |
 
-What a service **does** with a `text`, `file` or `reference` source when writing a document (extract text, pass the PDF to a model that reads PDFs, ignore images) is implementation, not protocol. The protocol records that the source is there.
+What a service **does** with a `text`, `file` or `reference` source when writing a document (extract text, pass the PDF to a model that reads PDFs, use only some of it) is the service's choice. The protocol records the source and its id.
 
-**Sources are immutable** except `label`. To change one, delete it and add a new one. Reason: a document records which source ids it used (chapter 10); if a source could change underneath, that record would lie.
+**Sources are immutable.** A document records which source ids it used (chapter 10), and that record stays true because a source never changes under it.
 
 ## 6.5 Source endpoints
 
@@ -120,29 +119,21 @@ The body depends on the kind:
 
 | Kind | Request | Result |
 |---|---|---|
-| `audio` | JSON: `{ "kind": "audio", "input": "chunked" \| "file", "language_hints": [...], "stt_model": "…", "label": "…" }` | `201`, source in `created` with a `transport` (6.7). No audio bytes in this request. |
-| `text` | JSON: `{ "kind": "text", "text": "…", "label": "…" }` | `201`, `ready`. |
-| `file` | `multipart/form-data` with a `source` part (JSON: `{ "kind": "file", "label": "…" }`) and a `file` part (the bytes, with its `Content-Type` and filename). Or JSON `{ "kind": "file", "url": "https://…" }` if discovery says `url_fetch: true`. | `201`, `ready` (or `processing` then `ready` for a URL fetch). |
+| `audio` | JSON: `{ "kind": "audio", "input": "chunked" \| "file", "language_hints": [...], "stt_model": "…" }` | `201`, source in `created` with a `transport` (6.7). No audio bytes in this request. |
+| `text` | JSON: `{ "kind": "text", "text": "…" }` | `201`, `ready`. |
+| `file` | `multipart/form-data` with a `source` part (JSON: `{ "kind": "file" }`) and a `file` part (the bytes, with its `Content-Type` and filename). Or JSON `{ "kind": "file", "url": "https://…" }` if discovery says `url_fetch: true`. | `201`, `ready` (or `processing` then `ready` for a URL fetch). |
 | `reference` | JSON: `{ "kind": "reference", "session_id": "…" }` or `{ "kind": "reference", "document_id": "…" }` | `201`, `ready`. |
 
 Refused with `422 source_limit_reached` when the session already holds the maximum for that kind or in total, and `422 kind_not_supported` for a kind not in discovery. Refused with `409 invalid_state` on an `archived` session.
 
-### List, get, content
+### List, get
 
 ```http
 GET /v1/sessions/{id}/sources
 GET /v1/sessions/{id}/sources/{sid}
-GET /v1/sessions/{id}/sources/{sid}/content      (file kind: the bytes; audio kind: the assembled audio, if the service keeps it)
 ```
 
-### Relabel
-
-```http
-PATCH /v1/sessions/{id}/sources/{sid}
-{ "label": "exam recording" }
-```
-
-The only field that may change. `200` with the source.
+A `text` source carries its text inline; a `file` source carries `file.url` for the bytes; an `audio` source carries `transcript_id` and, when the service keeps the audio, `audio_url`.
 
 ### Delete
 
@@ -165,7 +156,6 @@ An audio source is one recording. It carries everything to do with getting speec
   "id": "01J9ZN7B8C9D0E1F2G3H4J5K6M",
   "kind": "audio",
   "status": "recording",
-  "label": null,
   "created_at": "2026-10-22T06:10:00.000Z",
   "input": "chunked",
   "language_hints": ["hi", "en"],
@@ -178,7 +168,8 @@ An audio source is one recording. It carries everything to do with getting speec
   "failure": null,
   "cancel_reason": null,
   "transcript_id": null,
-  "transport": { "kind": "http-put", "method": "PUT", "url_template": "https://scribe.example.com/v1/sessions/01J9ZM1A…/sources/01J9ZN7B…/chunks/{n}" }
+  "audio_url": null,
+  "transport": { "kind": "put", "url_template": "https://scribe.example.com/v1/sessions/01J9ZM1A…/sources/01J9ZN7B…/chunks/{n}" }
 }
 ```
 
@@ -195,6 +186,7 @@ An audio source is one recording. It carries everything to do with getting speec
 | `failure` | object \| null | When `failed`: `code` (closed list: `transcription_failed`, `audio_unreadable`, `language_unsupported`, `internal_error`), `message`. |
 | `cancel_reason` | string \| null | When `cancelled`: `client` or `no_audio`. |
 | `transcript_id` | ULID \| null | Set once the transcript exists (chapter 8). Partial transcripts are readable while `recording`; see 8.4. |
+| `audio_url` | URL \| null | Where the recording can be fetched once complete, when the service keeps audio. `null` otherwise. |
 | `transport` | object \| null | Where and how to send the audio (6.9). Present while `created` or `recording`; `null` after. |
 
 ### States
@@ -213,7 +205,7 @@ stateDiagram-v2
 | State | Meaning |
 |---|---|
 | `created` | Exists, nothing received. |
-| `recording` | At least one chunk (or the file) received. Chunks are transcribed as they arrive. |
+| `recording` | At least one chunk (or the file) received. Chunks may be transcribed as they arrive. |
 | `processing` | Ended. Remaining chunks transcribed and joined. |
 | `success` | Transcript complete. |
 | `failed` | Transcription could not finish; `failure` says why. |
@@ -228,7 +220,9 @@ POST /v1/sessions/{id}/sources/{sid}/end
 { "chunks_total": 12 }
 ```
 
-`chunks_total` is optional: how many chunks were sent in all (indexes `0 … chunks_total−1`). With it the service can tell a lost *last* chunk from a finished recording. Without it, the highest index received is treated as the last.
+`end` is the one call the client makes after the audio bytes are sent, whatever the transport. The service checks what it holds and answers.
+
+`chunks_total` is optional: how many chunks were sent in all (indexes `0 … chunks_total−1`). With it the service can tell a lost *last* chunk from a finished recording. Without it, the highest index received is treated as the last. For `input: file` it is omitted.
 
 ```json
 200
@@ -240,7 +234,7 @@ POST /v1/sessions/{id}/sources/{sid}/end
 - Empty `gaps`: the source moves to `processing`; the response shows that.
 - `end` is idempotent on a source already past `recording`.
 
-For `input: file`, `end` is implied by the upload; calling it is harmless.
+For `input: file`, `end` after the upload moves the source to `processing`; `gaps` is empty, or `[0]` when the file has not arrived.
 
 ### By the service
 
@@ -263,54 +257,41 @@ From `created` or `recording` only; else `409 invalid_state`. Received audio is 
 
 ## 6.9 Transport
 
-The service tells the client exactly where and how to send the audio. The client MUST use what it is given and MUST NOT build upload URLs itself.
+The service tells the client where and how to send the audio; the client uses what it is given. The URL may point at the service's own API or straight at object storage: that is the service's choice and makes no difference to the client.
 
-| `kind` | For `input` | Fields | Meaning |
-|---|---|---|---|
-| `http-put` | `chunked` | `url_template`, `method: PUT` | Replace `{n}` with the chunk index. Raw audio body; `Content-Type` is the format. Through the API. |
-| `http-upload` | `file` | `url`, `method: POST` | One request with the whole recording. Through the API. |
-| `signed-put` | `chunked`, `file` | `url_template` or `url`, `method: PUT`, `expires_at`, optional `headers` | Direct to object storage with a pre-signed URL. Only when `capabilities.direct_upload` is `true`. |
-| `signed-post` | `file` | `url`, `method: POST`, `fields`, `expires_at` | Pre-signed form (S3-style). Only when `direct_upload` is `true`. |
-| `websocket` | `stream` | reserved | Not in this version. |
+| `kind` | Fields | Meaning |
+|---|---|---|
+| `put` | `url_template` (chunked) or `url` (file), optional `headers`, optional `expires_at` | One `PUT` per chunk or per file, raw audio body, `Content-Type` is the format. `{n}` in `url_template` is replaced with the chunk index. |
+| `post-form` | `url`, `fields`, optional `expires_at` | One `multipart/form-data` `POST` with every entry of `fields` as a form field, then the audio as the field `file`. The pre-signed form that object stores offer. |
+| `websocket` | reserved | Not in this version. |
 
-A client MUST be able to handle `http-put` and `http-upload`. Details in chapter 7.
+A client MUST handle `put`. Details in chapter 7.
 
-## 6.10 Events
-
-| Event | When |
-|---|---|
-| `session.created` · `session.archived` · `session.deleted` | |
-| `source.added` · `source.deleted` | any kind |
-| `source.recording_started` · `source.processing` · `source.success` · `source.failed` · `source.cancelled` | `audio` kind |
-
-Every event carries the session id, the source id where relevant, and the session's `metadata` (chapter 12).
-
-## 6.11 Errors
+## 6.10 Errors
 
 | Code | HTTP | When |
 |---|---|---|
 | `session_not_found`, `source_not_found` | 404 | Unknown id, or not visible to this caller. |
 | `metadata_too_large` | 400 | > 4 KB. |
+| `invalid_request` | 400 | `PATCH` with no known field, or `status` other than `archived`. |
 | `invalid_source` | 400 | Malformed source request; `language_hint` or `stt_model` not in discovery; `reference` to an unknown object. |
 | `kind_not_supported` | 422 | Kind not in `capabilities.sources.kinds`. |
 | `source_limit_reached` | 422 | Per-kind or total limit hit. |
 | `source_too_large` | 422 | `text` over `max_chars`, `file` over `max_bytes`, or a content type not accepted. |
-| `source_not_recording` | 422 | Audio sent to an audio source not in `created` or `recording`. |
-| `invalid_state` | 409 | Action not allowed now (add to an archived session, cancel after end). |
+| `source_not_recording` | 422 | `end` on an audio source not in `created` or `recording`, or audio sent to one when the service hosts the upload URL. |
+| `invalid_state` | 409 | Action not allowed now (add to or patch an archived session, cancel after end). |
 
-## 6.12 Summary of endpoints
+## 6.11 Summary of endpoints
 
 | Method | Path | Required? |
 |---|---|---|
 | POST, GET | `/v1/sessions` | yes |
-| GET, DELETE | `/v1/sessions/{id}` | yes |
-| POST | `/v1/sessions/{id}/archive` | yes |
+| GET, PATCH, DELETE | `/v1/sessions/{id}` | yes |
 | POST, GET | `/v1/sessions/{id}/sources` | yes |
-| GET, PATCH, DELETE | `/v1/sessions/{id}/sources/{sid}` | yes |
-| GET | `/v1/sessions/{id}/sources/{sid}/content` | yes for `file`; optional for `audio` |
+| GET, DELETE | `/v1/sessions/{id}/sources/{sid}` | yes |
 | POST | `/v1/sessions/{id}/sources/{sid}/end`, `…/cancel` | yes (audio) |
-| PUT | `/v1/sessions/{id}/sources/{sid}/chunks/{n}` | chapter 7 |
-| POST | `/v1/sessions/{id}/sources/{sid}/file` | chapter 7 |
+
+Audio bytes go to the URL in the source's `transport` (6.9, chapter 7), which the protocol does not fix.
 
 > **[OPEN]** `templates: [id, …]` at session creation to generate documents automatically when sources become ready. Not in this draft.
 
