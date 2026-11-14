@@ -23,6 +23,11 @@ Inside each file:
 | `06-source-end-response.schema.json` | SourceEndResponse | 06 §6.8 |
 | `08-transcript-chunk.schema.json` | TranscriptChunk | 08 §8.2 |
 | `08-transcript.schema.json` | Transcript | 08 §8.3 |
+| `09-template.schema.json` | Template | 09 §9.2 |
+| `09-template-create-request.schema.json` | TemplateCreateRequest | 09 §9.3 |
+| `10-generate-request.schema.json` | GenerateRequest | 10 §10.2 |
+| `10-document.schema.json` | Document | 10 §10.3 |
+| `10-document-create-request.schema.json` | DocumentCreateRequest | 10 §10.4 |
 
 ## Rules
 

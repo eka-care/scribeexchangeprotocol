@@ -134,10 +134,9 @@
       "type": "object",
       "required": [
         "sources",
-        "document_history",
-        "document_forms",
-        "document_delivery",
-        "export_formats"
+        "templates",
+        "documents",
+        "output_formats"
       ],
       "properties": {
         "sources": {
@@ -283,37 +282,42 @@
             }
           }
         },
-        "document_history": {
-          "type": "boolean",
-          "description": "Whether old revisions of documents are kept and served. false: only current content."
+        "templates": {
+          "type": "object",
+          "required": [
+            "max_instruction_chars",
+            "max_per_caller"
+          ],
+          "properties": {
+            "max_instruction_chars": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "max_per_caller": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
         },
-        "document_forms": {
+        "documents": {
+          "type": "object",
+          "required": [
+            "max_content_bytes"
+          ],
+          "properties": {
+            "max_content_bytes": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
+        "output_formats": {
           "type": "array",
           "minItems": 1,
-          "uniqueItems": true,
           "items": {
             "type": "string"
           },
-          "description": "Open list of the forms every document carries. Known ids: markdown, json, html, text. A deployment may add its own."
-        },
-        "document_delivery": {
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "type": "string"
-          },
-          "contains": {
-            "const": "poll"
-          },
-          "description": "Open list: poll (always), webhook, stream (reserved)."
-        },
-        "export_formats": {
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "type": "string"
-          },
-          "description": "Open list of export formats this deployment offers."
+          "description": "Open list. Known: markdown, json, text, html."
         }
       }
     },

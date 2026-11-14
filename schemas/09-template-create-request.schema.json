@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:scribe-exchange:schema:template-create-request",
+  "$comment": "Defined in spec/09-templates.md §9.3 (Scribe Exchange Protocol v0.1)",
+  "title": "TemplateCreateRequest",
+  "description": "Body of POST /v1/templates.",
+  "type": "object",
+  "required": [
+    "name",
+    "instructions",
+    "output_format"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "instructions": {
+      "type": "string",
+      "minLength": 1
+    },
+    "output_format": {
+      "type": "string",
+      "description": "One of discovery output_formats. Known: markdown, json, text, html."
+    },
+    "output_json_schema": {
+      "type": "object",
+      "description": "Only with output_format json."
+    }
+  },
+  "additionalProperties": false
+}

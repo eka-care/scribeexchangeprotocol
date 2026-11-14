@@ -60,18 +60,16 @@
         }
       }
     },
-    "document_history": false,
-    "document_forms": [
-      "json",
-      "markdown"
-    ],
-    "document_delivery": [
-      "poll",
-      "webhook"
-    ],
-    "export_formats": [
+    "templates": {
+      "max_instruction_chars": 20000,
+      "max_per_caller": 100
+    },
+    "documents": {
+      "max_content_bytes": 1048576
+    },
+    "output_formats": [
       "markdown",
-      "pdf"
+      "json"
     ]
   },
   "models": {

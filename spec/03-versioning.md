@@ -17,7 +17,7 @@ Stability is promised from `1.0`: from then on the additive rule below is a guar
 
 ## 3.2 The version is in the path
 
-Every endpoint lives under `/v{MAJOR}/`: `/v1/sessions`, `/v1/documents/{id}`. A breaking change means a new prefix (`/v2/`) served alongside the old one for the deprecation period.
+Every endpoint lives under `/v{MAJOR}/`: `/v1/sessions`, `/v1/templates/{id}`. A breaking change means a new prefix (`/v2/`) served alongside the old one for the deprecation period.
 
 Minor versions are additive, so any `1.x` client works against any `1.y` server. A client that wants to pin a minor MAY send:
 

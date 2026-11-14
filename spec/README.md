@@ -12,8 +12,8 @@ Written one at a time, reviewed before the next. A chapter is "done" when its ob
 | 06 | `06-sessions.md` | Sessions as folders (`active` / `archived`) and **sources** (`audio`, `text`, `file`, `reference`); the audio source lifecycle, `end` with gaps, `transport` | draft |
 | 07 | `07-audio-input.md` | Sending audio to the `transport` URL: chunk rules, single file, formats | draft |
 | 08 | `08-transcripts.md` | Chunk text while recording, whole transcript at the end, timestamps | draft |
-| 09 | `09-templates.md` | Template object (sections, kinds, instructions, output language, tools, knowledge), CRUD, packs | planned |
-| 10 | `10-documents.md` | Document object, forms as declared in discovery, generate, save, `revision`, export | planned |
+| 09 | `09-templates.md` | Template: instructions, output format, optional JSON schema; create, list, delete | draft |
+| 10 | `10-documents.md` | Generate (a streamed call, nothing stored) and documents (saved text with `revision`) | draft |
 | 11 | `11-jobs.md` | Job object, status endpoint, how a client learns work is done | planned |
 | 12 | `12-deletion.md` | Delete a session and everything in it: what is removed | planned |
 | 13 | `13-errors.md` | Error shape, codes, HTTP mapping, retry guidance | planned |

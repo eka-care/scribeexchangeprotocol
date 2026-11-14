@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:scribe-exchange:schema:template",
+  "$comment": "Defined in spec/09-templates.md §9.2 (Scribe Exchange Protocol v0.1)",
+  "title": "Template",
+  "description": "Plain-language instructions and an output format. Immutable.",
+  "type": "object",
+  "required": [
+    "id",
+    "name",
+    "instructions",
+    "output_format",
+    "output_json_schema",
+    "created_at"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "instructions": {
+      "type": "string",
+      "minLength": 1
+    },
+    "output_format": {
+      "type": "string",
+      "description": "One of discovery output_formats. Known: markdown, json, text, html."
+    },
+    "output_json_schema": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "description": "json only: a JSON Schema the output must satisfy."
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "additionalProperties": false
+}

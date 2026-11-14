@@ -43,13 +43,12 @@ sequenceDiagram
   S-->>C: source {status: ready}
   C->>S: POST /v1/sessions/{id}/sources {kind: audio}   (a second recording)
   S-->>C: source {sid2, transport}
-  C->>S: POST /v1/documents {session_id, template_id}
-  S-->>C: document {status: queued, job_id}
-  C->>S: GET /v1/documents/{id}
-  S-->>C: document {forms: {...as declared in discovery}}
-  C->>S: PUT /v1/documents/{id} (edited, If-Match: 1)
+  C->>S: POST /v1/sessions/{id}/generate {template_id}
+  S-->>C: stream: started, delta…, done {content}
+  C->>S: POST /v1/sessions/{id}/documents {output_format, content}
+  S-->>C: document {id, revision: 1}
+  C->>S: PUT /v1/sessions/{id}/documents/{did} (edited, If-Match: 1)
   S-->>C: document {revision: 2}
-  C->>S: POST /v1/documents/{id}/export?format=markdown
 ```
 
 1. **Discover.** Read what the service supports; cache it.
@@ -59,8 +58,8 @@ sequenceDiagram
 5. **Send audio** as numbered chunks, or as one file. The service may transcribe as chunks arrive.
 6. **End the recording.** The service reports which chunks it has and which are missing; the client fills the gaps and ends again. The audio source becomes `processing`, then `success` when its transcript is ready. The session stays `active`.
 7. **Add more sources** at any time while the session is active: text, a file, a reference to earlier work, another recording (steps 4–6 again).
-8. **Generate documents.** One call per document: a session id and a template id. The same template may be used any number of times. Each call returns a job; the client polls it until it is done (chapter 11).
-9. **Read, edit, export.** A document holds its current content and a `revision`. Saving sends the revision that was edited; a stale one gets `409`. Discovery declares which forms and export formats exist.
+8. **Generate.** One call: a template, optionally a model and a choice of sources. The service streams the text back as it writes it. Nothing is stored; the same template may be applied as often as wanted.
+9. **Save documents.** The client saves what it wants kept as a document. A document holds its current content and a `revision`; saving sends the revision that was edited, and a stale one gets `409`.
 
 ## 2.3 Objects
 
@@ -70,17 +69,15 @@ erDiagram
   SOURCE ||--o{ CHUNK : "receives (audio)"
   CHUNK ||--o| CHUNK_TEXT : "transcribed to"
   SOURCE ||--o| TRANSCRIPT : "produces (audio)"
-  SESSION ||--o{ DOCUMENT : produces
-  TEMPLATE ||--o{ DOCUMENT : shapes
+  SESSION ||--o{ DOCUMENT : holds
   SOURCE ||--o{ JOB : runs
-  DOCUMENT ||--o{ JOB : runs
 ```
 
 - A **session** is a folder: it holds sources and produces documents. It is `active` until archived.
 - A **source** is one thing in the folder: `audio` (a recording, which produces a transcript), `text`, `file` or `reference`. Any number, added at any time, each with an id so a document can say what it used.
 - A **transcript** is the text of one audio source: chunk by chunk while recording, whole once the source is `success`.
-- A **template** is the recipe for a document.
-- A **document** is made from one session and one template. It holds its current content and a `revision` number. A service that also keeps earlier revisions says so in discovery (`document_history`).
+- A **template** says what to write and in which format. Applying it to a session's sources is **generation**: a streamed call, nothing stored.
+- A **document** is text saved in a session, in one format, with a `revision` number.
 - A **job** is background work on a session or a document; polling it is how a client learns the work is done.
 
 The protocol defines these objects and the operations on them. Access rules are the service's.
@@ -94,7 +91,6 @@ One set of words, used everywhere:
 | Session | `active` \| `archived` |
 | Audio source | `created` → `recording` → `processing` → `success` \| `failed` \| `cancelled` |
 | Other sources | `ready` \| `failed` |
-| Document | `queued` → `generating` → `success` \| `failed` |
 | Job | `queued` → `running` → `success` \| `failed` |
 
 Times are fields (`recording_started_at`, `recording_ended_at`). A thing that succeeded with problems stays `success` and carries `warnings[]` (closed list, chapter 6). `cancelled` is a recording that ended without a transcript and carries a `cancel_reason`. A session stays `active` for as long as its owner wants.

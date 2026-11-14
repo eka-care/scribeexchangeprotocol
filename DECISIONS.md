@@ -36,7 +36,7 @@ Chunks are numbered from 0 and sent to a URL the service hands out (`transport`)
 `success | failed` for things that run (audio sources, documents, jobs); `cancelled` for a recording with no result; `ready` for sources that need no work; `active | archived` for sessions. Problems that did not stop a thing are carried as `warnings[]`.
 
 ## D12. Documents: current content and a revision number
-A document holds its current content plus a `revision` that rises on every save. Save sends `If-Match: <revision>`; a stale one gets `409` with the current revision and the client decides; `If-Match: *` skips the check. `document.saved` fires on every save so clients or plugins may keep history; a service that keeps it says `document_history: true`.
+A document is text the client saved in a session, in one format, with a `revision` that rises on every save. Save sends `If-Match: <revision>`; a stale one gets `409` with the current document and the client decides; `If-Match: *` skips the check. The service keeps the current content only.
 
 ## D13. Deletion of a session is required
 Every compliant service can delete a session and everything in it (sources, audio, transcripts, documents). Deleting people is the implementation's job.
@@ -52,3 +52,9 @@ Anything that runs in the background returns a job; the client polls `GET /v1/jo
 
 ## D17. Transcript: chunk texts while recording, one text at the end
 Each uploaded chunk gets its own text object as soon as it is transcribed, read by index; it is immutable once done, so it can be a small object in any store. When the source completes, the service writes the whole transcript once as plain text. No segment list and no paging in v0.1; speaker turns and finer timing can be added as fields later. Timestamps on a chunk: `audio_offset_ms` is position on the audio timeline (from the bytes, no clock); `received_at` is when the bytes reached the service's storage (service clock); `recorded_at` is the client's own clock, sent with `end`, stored as given.
+
+## D18. Templates are instructions plus an output format
+A template is `instructions` (plain language), an `output_format` from discovery's open list (`markdown`, `json`, `text`, `html`), and for `json` an optional `output_json_schema` the output must satisfy. Immutable. Sections, output language and the like live in the instructions; fields for them can be added later.
+
+## D19. Generation is a streamed call; documents are saved text
+`POST /v1/sessions/{id}/generate` takes a template, optionally a model and a subset of sources, and streams the output (`started`, `delta`*, `done` | `error`). Nothing is stored; a lost stream is called again. What the client wants kept it saves as a document. The two are independent, so the protocol has no job object for generation, no export, and one format per document.

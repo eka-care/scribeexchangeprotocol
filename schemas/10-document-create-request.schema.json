@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:scribe-exchange:schema:document-create-request",
+  "$comment": "Defined in spec/10-documents.md \u00a710.4 (Scribe Exchange Protocol v0.1)",
+  "title": "DocumentCreateRequest",
+  "description": "Body of POST /v1/sessions/{id}/documents.",
+  "type": "object",
+  "required": [
+    "output_format",
+    "content"
+  ],
+  "properties": {
+    "output_format": {
+      "type": "string",
+      "description": "One of discovery output_formats."
+    },
+    "content": {
+      "type": [
+        "string",
+        "object"
+      ]
+    }
+  },
+  "additionalProperties": false
+}
