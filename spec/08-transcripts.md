@@ -1,125 +1,96 @@
 # 8. Transcripts
 
-**Scribe Exchange Protocol v0.1 (draft)** · Schemas: [`08-transcript.schema.json`](../schemas/08-transcript.schema.json), [`08-transcript-segments-page.schema.json`](../schemas/08-transcript-segments-page.schema.json)
+**Scribe Exchange Protocol v0.1 (draft)** · Schemas: [`08-transcript-chunk.schema.json`](../schemas/08-transcript-chunk.schema.json), [`08-transcript.schema.json`](../schemas/08-transcript.schema.json)
 
 ---
 
 ## 8.1 What a transcript is
 
-A **transcript** is the text of one recording: what was said, in order, with the time each piece was said and, where the speech-to-text model provides them, who said it, in which language, and how sure the model is. It is made from one audio source and belongs to it (`source.transcript_id`).
+A **transcript** is the text of one recording. It belongs to its audio source (chapter 6) and is read under it. There are two views:
 
-The transcript grows while the recording is in progress and is complete when the audio source reaches `success`.
+- **Chunk by chunk, while recording** — each uploaded chunk gets its own text as soon as the service has transcribed it. This is the live view.
+- **Whole, at the end** — once the source is `success`, one object holds the complete text.
 
-## 8.2 The transcript object
+For `input: file` only the whole view applies.
+
+## 8.2 The chunk object
+
+```http
+GET /v1/sessions/{id}/sources/{sid}/transcript/chunks/{n}
+```
 
 ```json
 {
-  "id": "01J9ZM9Q8R7S6T5V4W3X2Y1Z0A",
-  "session_id": "01J9ZM1A2B3C4D5E6F7G8H9J0K",
+  "index": 3,
+  "status": "success",
+  "audio_offset_ms": 64120,
+  "received_at": "2026-10-22T06:11:40.210Z",
+  "recorded_at": "2026-10-22T06:11:14.000Z",
+  "text": "Teen din se sar dard hai. Bukhar nahi hai."
+}
+```
+
+| Field | Type | Meaning |
+|---|---|---|
+| `index` | integer | The chunk's upload index (chapter 7). |
+| `status` | string | Closed list: `queued` (received, not yet transcribed), `success` (text ready), `failed` (could not be transcribed; the source carries a `chunk_skipped` warning). |
+| `audio_offset_ms` | integer \| null | Where this chunk starts on the audio timeline: the summed length of chunks `0 … n−1`, from decoding them. `null` while any earlier chunk is missing. Pauses between chunks are not audio and are not counted. |
+| `received_at` | timestamp | When the bytes reached the service's storage (service clock). |
+| `recorded_at` | timestamp \| null | The client's own clock for when the chunk was recorded, as sent with `end` (6.8). `null` until then, or when the client sent none. |
+| `text` | string \| null | What was said in this chunk. `null` unless `success`. |
+
+Rules:
+
+- `404 chunk_not_found` until the service holds the chunk. Right after an upload under `post-form` the service may not have noticed the bytes yet; a client retries after a moment.
+- Once `success`, the object does not change (except `recorded_at` being filled at `end`). A client fetches each index once and keeps it.
+- The service SHOULD transcribe chunks as they arrive. `chunks.transcribed` on the source counts how many are `success` or `failed`.
+
+A client building a live view: upload chunk `n`, poll `…/chunks/{n}` until `success` or `failed`, append the text. Under `put` the upload response is already this object (7.2), often with `status: success`, in which case there is nothing to poll.
+
+## 8.3 The transcript object
+
+```http
+GET /v1/sessions/{id}/sources/{sid}/transcript
+```
+
+```json
+{
   "source_id": "01J9ZN7B8C9D0E1F2G3H4J5K6M",
-  "complete": true,
   "stt_model": "whisper-large-v3",
   "language_detected": "hi",
   "duration_ms": 871240,
-  "segment_count": 212,
-  "text": "S1: Namaste, kya takleef hai?\nS2: Teen din se sar dard hai…",
-  "created_at": "2026-10-22T06:10:09.004Z",
-  "updated_at": "2026-10-22T06:24:58.402Z"
+  "text": "Namaste, kya takleef hai?\nTeen din se sar dard hai. Bukhar nahi hai.\n…",
+  "created_at": "2026-10-22T06:24:58.402Z"
 }
 ```
 
 | Field | Type | Meaning |
 |---|---|---|
-| `id` | ULID | |
-| `session_id`, `source_id` | ULID | Where it belongs. |
-| `complete` | boolean | `true` once every chunk is transcribed and joined. `false` while the recording is in progress. |
+| `source_id` | ULID | The audio source. |
 | `stt_model` | string | The speech-to-text model that produced it. |
-| `language_detected` | string \| null | BCP 47 tag of the main spoken language, once known. |
-| `duration_ms` | integer | Length of audio transcribed so far. |
-| `segment_count` | integer | Number of segments so far. |
-| `text` | string | A plain-text rendering of the segments in order, one segment per line, prefixed with the speaker label when there is one. Convenient for display; the segments are the data. |
-| `created_at`, `updated_at` | timestamp | `updated_at` moves every time segments are added. |
+| `language_detected` | string \| null | BCP 47 tag of the main spoken language, when the model reports one. |
+| `duration_ms` | integer | Length of the audio transcribed. |
+| `text` | string | The whole recording as plain text, chunks joined in index order, skipped chunks omitted. |
+| `created_at` | timestamp | When the service joined it. |
 
-## 8.3 Segments
+Available once the source is `success`; before that `409 invalid_state`. The service writes it once, when the source completes, and it does not change. A `failed` source has no transcript object; its chunk objects stay readable.
 
-A **segment** is one piece of speech.
+> **[OPEN]** Whether a client may correct a transcript through the protocol, and how a document generated earlier records which text it read.
 
-```json
-{
-  "index": 17,
-  "text": "Teen din se sar dard hai.",
-  "start_ms": 64120,
-  "end_ms": 66880,
-  "speaker": "S2",
-  "language": "hi",
-  "confidence": 0.93,
-  "chunk_index": 2
-}
-```
-
-| Field | Type | Meaning |
-|---|---|---|
-| `index` | integer | Position in the transcript, from 0, in time order. |
-| `text` | string | What was said. |
-| `start_ms`, `end_ms` | integer | Offsets from the start of the recording, in milliseconds. |
-| `speaker` | string \| null | A label the model assigned to tell speakers apart (`S1`, `S2`, …). Present when the model separates speakers (`features.diarization`). The label is opaque; a profile may define meanings. |
-| `language` | string \| null | BCP 47 tag for this segment, when the model reports it. |
-| `confidence` | number \| null | 0 to 1, when the model reports it. |
-| `chunk_index` | integer | Which uploaded chunk this came from. |
-
-A service fills what its model provides and leaves the rest `null`. The fields are there so that every client reads one shape whatever the model.
-
-## 8.4 Reading a transcript
-
-```http
-GET /v1/transcripts/{id}
-```
-Returns the transcript object. `200`.
-
-```http
-GET /v1/transcripts/{id}/segments?after_index=16&limit=200
-```
-Returns a page of segments in order:
-
-```json
-{ "segments": [ … ], "next_after_index": 216, "complete": true }
-```
-
-`after_index` (default: from the start) and `limit` (default 200, max 1000) page through long transcripts. `next_after_index` is the value to pass for the next page, or `null` when there are no more segments *yet*; `complete` says whether more may still arrive.
-
-**While recording**, segments appear as chunks are transcribed; a client polls `/segments` with the last `next_after_index` it saw. Segments already returned keep their index and content.
-
-The transcript is also reachable through its source: `GET /v1/sessions/{id}/sources/{sid}/transcript` returns the same object.
-
-## 8.5 Lifecycle
-
-| Audio source status | Transcript |
-|---|---|
-| `created` | none yet (`transcript_id` is `null`) |
-| `recording` | exists once the first chunk is transcribed; `complete: false`; grows |
-| `processing` | last chunks being transcribed and joined; `complete: false` |
-| `success` | `complete: true`; `language_detected` and `duration_ms` final |
-| `failed` | whatever was transcribed stays readable, `complete: false`; `source.failure` says why |
-| `cancelled` | none, or whatever existed stays readable |
-
-Deleting the source or the session deletes the transcript (chapter 12).
-
-> **[OPEN]** Whether a client may edit a transcript (correct a word, relabel a speaker) through the protocol, and how a document generated earlier records which version it read.
-
-## 8.6 Errors
+## 8.4 Errors
 
 | Code | HTTP | When |
 |---|---|---|
-| `transcript_not_found` | 404 | Unknown id, or outside what the caller may see. |
-| `invalid_range` | 400 | `after_index` below 0 or `limit` outside 1–1000. |
+| `source_not_found` | 404 | Unknown source, or not an `audio` source. |
+| `chunk_not_found` | 404 | No chunk with that index held by the service. |
+| `invalid_state` | 409 | Transcript object requested before the source is `success`. |
 
-## 8.7 Summary of endpoints
+## 8.5 Summary of endpoints
 
-| Method | Path |
-|---|---|
-| GET | `/v1/transcripts/{id}` |
-| GET | `/v1/transcripts/{id}/segments` |
-| GET | `/v1/sessions/{id}/sources/{sid}/transcript` |
+| Method | Path | Required? |
+|---|---|---|
+| GET | `/v1/sessions/{id}/sources/{sid}/transcript/chunks/{n}` | yes |
+| GET | `/v1/sessions/{id}/sources/{sid}/transcript` | yes |
 
 ---
 

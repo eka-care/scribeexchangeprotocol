@@ -52,7 +52,7 @@ Lipi is the reference implementation, one of many. This specification speaks of 
 | **Session** | A folder for one conversation or piece of work: the sources put into it over time, and the documents made from them. Stays active as long as its owner wants. |
 | **Source** | One thing put into a session: a recording (`audio`), a pasted note (`text`), a file (`file`), or a pointer to an earlier session or document (`reference`). Only `audio` has a lifecycle; the others are simply there. |
 | **Chunk** | A short piece of audio (a few seconds). Recordings are sent as numbered chunks. |
-| **Transcript** | The text of what was said in one recording, as an ordered list of **segments**. |
+| **Transcript** | The text of what was said in one recording: chunk by chunk while recording, whole at the end. |
 | **Segment** | One piece of a transcript: text, start and end time, and, when known, speaker, language, confidence. |
 | **Template** | The recipe for a document: its sections, what each section should contain, the output language, and what the writer may use. The model is chosen per request (chapter 10). |
 | **Document** | The structured result of applying a template to a transcript. Has one or more **forms** (markdown, JSON, HTML…); which forms, the service declares in discovery. |

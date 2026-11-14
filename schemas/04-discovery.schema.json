@@ -425,13 +425,6 @@
           },
           "description": "Languages this model handles. Absent means any supported language."
         },
-        "features": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "boolean"
-          },
-          "description": "Open list of boolean flags. stt: timestamps, diarization. structuring: streaming."
-        },
         "default": {
           "type": "boolean",
           "description": "The model used when a request names none. One per list."

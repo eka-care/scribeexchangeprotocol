@@ -1,6 +1,7 @@
 {
   "kind": "audio",
   "input": "chunked",
+  "format": "audio/webm;codecs=opus",
   "language_hints": [
     "hi"
   ],

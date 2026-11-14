@@ -77,10 +77,6 @@
           "hi",
           "ta"
         ],
-        "features": {
-          "timestamps": true,
-          "diarization": false
-        },
         "default": true
       }
     ],
@@ -88,17 +84,11 @@
       {
         "id": "llama-3.3-70b",
         "display_name": "Llama 3.3 70B (local)",
-        "features": {
-          "streaming": false
-        },
         "default": true
       },
       {
         "id": "claude-sonnet",
-        "display_name": "Claude Sonnet",
-        "features": {
-          "streaming": true
-        }
+        "display_name": "Claude Sonnet"
       }
     ]
   },

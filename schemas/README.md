@@ -21,8 +21,8 @@ Inside each file:
 | `06-source.schema.json` | Source (all kinds; audio fields) | 06 §6.4, §6.7 |
 | `06-source-create-request.schema.json` | SourceCreateRequest | 06 §6.5 |
 | `06-source-end-response.schema.json` | SourceEndResponse | 06 §6.8 |
-| `08-transcript.schema.json` | Transcript, Segment (`$defs/segment`) | 08 §8.2–8.3 |
-| `08-transcript-segments-page.schema.json` | TranscriptSegmentsPage | 08 §8.4 |
+| `08-transcript-chunk.schema.json` | TranscriptChunk | 08 §8.2 |
+| `08-transcript.schema.json` | Transcript | 08 §8.3 |
 
 ## Rules
 

@@ -11,7 +11,7 @@ Written one at a time, reviewed before the next. A chapter is "done" when its ob
 | 05 | `05-authentication.md` | Bearer token; discovery names the authorization server (OpenID Connect / OAuth 2); nothing else | draft |
 | 06 | `06-sessions.md` | Sessions as folders (`active` / `archived`) and **sources** (`audio`, `text`, `file`, `reference`); the audio source lifecycle, `end` with gaps, `transport` | draft |
 | 07 | `07-audio-input.md` | Sending audio to the `transport` URL: chunk rules, single file, formats | draft |
-| 08 | `08-transcripts.md` | Transcript and segment objects, paging, partial transcripts while recording | draft |
+| 08 | `08-transcripts.md` | Chunk text while recording, whole transcript at the end, timestamps | draft |
 | 09 | `09-templates.md` | Template object (sections, kinds, instructions, output language, tools, knowledge), CRUD, packs | planned |
 | 10 | `10-documents.md` | Document object, forms as declared in discovery, generate, save, `revision`, export | planned |
 | 11 | `11-jobs.md` | Job object, status endpoint, how a client learns work is done | planned |

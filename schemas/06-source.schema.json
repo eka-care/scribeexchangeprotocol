@@ -157,7 +157,8 @@
         },
         "transcribed": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "description": "How many chunks have a text or failed (chapter 8)."
         }
       },
       "description": "audio kind."
@@ -229,17 +230,6 @@
       ],
       "description": "audio kind. Set when cancelled."
     },
-    "transcript_id": {
-      "oneOf": [
-        {
-          "$ref": "#/$defs/ulid"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "description": "audio kind. Set once the transcript exists."
-    },
     "transport": {
       "oneOf": [
         {
@@ -251,13 +241,9 @@
       ],
       "description": "audio kind. Where and how to send audio. Present while created or recording; null after."
     },
-    "audio_url": {
-      "type": [
-        "string",
-        "null"
-      ],
-      "format": "uri",
-      "description": "audio kind. Where the complete recording can be fetched, when the service keeps audio."
+    "format": {
+      "type": "string",
+      "description": "audio kind. MIME type of the audio, one of discovery formats. Fixed at creation."
     }
   },
   "allOf": [
@@ -284,9 +270,8 @@
           "warnings",
           "failure",
           "cancel_reason",
-          "transcript_id",
           "transport",
-          "audio_url"
+          "format"
         ],
         "properties": {
           "status": {
@@ -393,7 +378,7 @@
       "required": [
         "kind"
       ],
-      "description": "Where and how to send audio. The URL may be the service's own API or a pre-signed object-store URL; the client uses it as given.",
+      "description": "Where and how to send audio. put: a URL under the service's API. post-form: a pre-signed form straight to an object store. The client uses it as given.",
       "properties": {
         "kind": {
           "type": "string",
