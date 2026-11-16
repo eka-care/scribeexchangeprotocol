@@ -59,7 +59,7 @@ Token lifetime and refresh follow the authorization server's own metadata. When 
 | `token_expired` | 401 | Token past its expiry. Get a new one and retry. |
 | `forbidden` | 403 | Valid token (or no auth required); the service's policy does not allow this action on this object. |
 
-Full error shape: chapter 13.
+Full error shape: chapter 11.
 
 ---
 

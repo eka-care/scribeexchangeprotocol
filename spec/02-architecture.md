@@ -70,7 +70,6 @@ erDiagram
   CHUNK ||--o| CHUNK_TEXT : "transcribed to"
   SOURCE ||--o| TRANSCRIPT : "produces (audio)"
   SESSION ||--o{ DOCUMENT : holds
-  SOURCE ||--o{ JOB : runs
 ```
 
 - A **session** is a folder: it holds sources and produces documents. It is `active` until archived.
@@ -78,7 +77,6 @@ erDiagram
 - A **transcript** is the text of one audio source: chunk by chunk while recording, whole once the source is `success`.
 - A **template** says what to write and in which format. Applying it to a session's sources is **generation**: a streamed call, nothing stored.
 - A **document** is text saved in a session, in one format, with a `revision` number.
-- A **job** is background work on a session or a document; polling it is how a client learns the work is done.
 
 The protocol defines these objects and the operations on them. Access rules are the service's.
 
@@ -91,13 +89,12 @@ One set of words, used everywhere:
 | Session | `active` \| `archived` |
 | Audio source | `created` → `recording` → `processing` → `success` \| `failed` \| `cancelled` |
 | Other sources | `ready` \| `failed` |
-| Job | `queued` → `running` → `success` \| `failed` |
 
 Times are fields (`recording_started_at`, `recording_ended_at`). A thing that succeeded with problems stays `success` and carries `warnings[]` (closed list, chapter 6). `cancelled` is a recording that ended without a transcript and carries a `cancel_reason`. A session stays `active` for as long as its owner wants.
 
 ## 2.5 Profiles
 
-A **profile** is a named add-on for one field. It may add template packs, optional fields on base objects, objects and endpoints under `/v1/profiles/{name}/`, event types, and strict output schemas for its templates. The base stays as it is. Discovery lists the installed profiles. Chapter 15 has the rules.
+A **profile** is a named add-on for one field. It may add template packs, optional fields on base objects, objects and endpoints under `/v1/profiles/{name}/` and strict output schemas for its templates. The base stays as it is. Discovery lists the installed profiles. Chapter 13 has the rules.
 
 ---
 

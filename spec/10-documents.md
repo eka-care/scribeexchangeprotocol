@@ -113,9 +113,9 @@ GET /v1/sessions/{id}/documents/{did}
 DELETE /v1/sessions/{id}/documents/{did}
 ```
 
-List returns the session's documents that are visible to the caller, newest first. Pagination as for sessions.
+List returns the session's documents, newest first, and requires the session to be visible to the caller. Pagination as for sessions. Delete answers `204`; 6.11 says what "removed" means. Refused with `409 invalid_state` on an `archived` session.
 
-A document's visibility is its own, not inherited from its session: a service may let a caller see a document without letting it see the session (the session then answers `404` to that caller, the document `200`). What "visible" means is the service's policy. Delete answers `204`; chapter 12 says what "removed" means.
+A document's visibility is its own, not inherited from its session: a service may let a caller see a document without letting it see the session. That caller gets `200` on the document by id, and `404` on the session and on the list. What "visible" means is the service's policy. Delete answers `204`; chapter 12 says what "removed" means.
 
 ## 10.7 Limits come from discovery
 
@@ -130,7 +130,7 @@ A document's visibility is its own, not inherited from its session: a service ma
 | `invalid_request` | 400 | Missing field; `structuring_model` or `output_format` not in discovery; a `source_ids` entry not in this session or not usable; `content` not of the document's format. |
 | `content_too_large` | 413 | `content` over `max_content_bytes`. |
 | `revision_conflict` | 409 | `If-Match` is not the current revision. Body: the current document. |
-| `invalid_state` | 409 | Generate on, or create a document in, an archived session. |
+| `invalid_state` | 409 | Generate on, or create or delete a document in, an archived session. |
 | `precondition_required` | 428 | `PUT` without `If-Match`. |
 
 ## 10.9 Summary of endpoints
@@ -143,4 +143,4 @@ A document's visibility is its own, not inherited from its session: a service ma
 
 ---
 
-**Previous:** [9. Templates](./09-templates.md) · **Next:** [11. Jobs](./11-jobs.md)
+**Previous:** [9. Templates](./09-templates.md) · **Next:** [11. Errors](./11-errors.md)

@@ -76,7 +76,7 @@ Once archived, a session is read-only: no new sources or documents, no further `
 DELETE /v1/sessions/{id}
 ```
 
-Removes the session and everything in it: sources and their audio, transcripts, documents. Chapter 12 says what "removed" means. `202` with a job id, or `204` if done at once.
+Removes the session and everything in it: sources and their audio, chunk texts, transcripts, documents. `204`; 6.11 says what "removed" means. Allowed on an `active` or `archived` session.
 
 ## 6.4 The source object
 
@@ -174,7 +174,7 @@ A `text` source carries its text inline; a `file` source carries `file.url` for 
 DELETE /v1/sessions/{id}/sources/{sid}
 ```
 
-Removes the source and what was derived from it (its transcript, its stored audio). Documents already generated from it are kept; their `inputs` still name the id. `204`. An `audio` source in `recording` is cancelled first.
+Removes the source and what was derived from it (its audio, chunk texts, transcript). Documents already saved are kept as they are. `204`; 6.11 says what "removed" means. An `audio` source in `recording` is cancelled first.
 
 ## 6.6 Limits come from discovery
 
@@ -314,7 +314,19 @@ The client says which kinds it can handle with `transports` on the create reques
 | `source_not_recording` | 422 | `end` on an audio source not in `created` or `recording`, or audio sent to one when the service hosts the upload URL. |
 | `invalid_state` | 409 | Action not allowed now (add to or patch an archived session, cancel after end). |
 
-## 6.11 Summary of endpoints
+## 6.11 What deletion means
+
+`DELETE` on a session, a source or a document (chapter 10) removes it from the service's own store. From the moment the `204` is sent, every read of it answers `404`, and the service never serves its content again. The service may finish wiping bytes afterwards (storage, backups, indexes) on its own schedule; how long that takes, and what the law requires of it, is the service's business.
+
+Deletion reaches only what the service holds. It does not reach:
+
+- what a client already read and kept or passed on (a record written to another system, a file it made, a message it sent);
+- what the service sent to the models it uses; retention there is between the service and its provider;
+- a `reference` in another session that pointed at the deleted session or document. The reference stays as recorded; following it now answers `404`.
+
+**Archive is not deletion.** An archived session keeps everything and stays readable; it only stops changing (6.3).
+
+## 6.12 Summary of endpoints
 
 | Method | Path | Required? |
 |---|---|---|

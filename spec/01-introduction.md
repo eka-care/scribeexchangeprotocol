@@ -29,9 +29,8 @@ Lipi is the reference implementation, one of many. This specification speaks of 
 - Transcripts: the text of what was said in a recording, with timestamps, speakers and language where available.
 - Templates: the recipe that says what a document should contain.
 - Generation and documents: applying a template, and saving the result.
-- Jobs: how a client follows work that runs in the background and learns when it is done.
 - Deletion: removing a session and everything in it.
-- Errors, security, profiles, conformance (chapters 13–16).
+- Errors, security, profiles, conformance (chapters 11–14).
 
 ### Out of scope
 
@@ -39,7 +38,7 @@ Lipi is the reference implementation, one of many. This specification speaks of 
 
 - Users, roles, login screens, permissions, settings, administration, plugins, audit logs, health checks, push notifications such as webhooks. These belong to the implementation; Lipi, for example, provides all of them. The protocol says that a service requiring authentication takes a bearer token, and where to get one.
 - The editor's own document format. A service declares which output formats it produces (chapter 4).
-- Anything specific to one field. That is what **profiles** are for (chapter 15).
+- Anything specific to one field. That is what **profiles** are for (chapter 13).
 - Live (real-time) transcription. The objects leave room for it; the endpoints come in a later version.
 
 ## 1.3 Terms
@@ -56,7 +55,6 @@ Lipi is the reference implementation, one of many. This specification speaks of 
 | **Template** | Plain-language instructions and an output format. Applying it to a session is generation. |
 | **Document** | Text saved in a session, in one format. The client decides what to save; usually generated text after review. |
 | **Revision** | A number on a document that rises on every save. Clients send the revision they started from so two writers cannot overwrite each other unknowingly. |
-| **Job** | A piece of work the service runs in the background (transcribing, structuring). The client can ask for its status. |
 | **Discovery document** | A public JSON file the service publishes saying what it supports. |
 | **Profile** | An extension of this protocol for one field. It adds to the base. |
 | **Model** | An AI model the service can use. Two kinds: **STT** (speech-to-text) and **structuring** (writes the document). |
@@ -74,9 +72,9 @@ The key words MUST, MUST NOT, REQUIRED, SHOULD, SHOULD NOT, RECOMMENDED, MAY and
 - MAY accept other source kinds (`text`, `file`, `reference`), each declared in discovery.
 - MUST produce a transcript for every audio source that reaches `success`.
 - MUST declare in discovery which output formats it produces (`capabilities.output_formats`) and MUST produce generated text in the template's format (chapter 10).
-- MUST follow the error shape and codes (chapter 13).
-- MUST offer deletion of a session and everything in it (chapter 12).
-- MUST NOT add field-specific objects to the base; those go in a profile (chapter 15).
+- MUST follow the error shape and codes (chapter 11).
+- MUST offer deletion of a session and everything in it (chapter 6).
+- MUST NOT add field-specific objects to the base; those go in a profile (chapter 13).
 
 ### A conformant client
 
@@ -84,10 +82,9 @@ The key words MUST, MUST NOT, REQUIRED, SHOULD, SHOULD NOT, RECOMMENDED, MAY and
 - Reads `auth` from discovery. When a token is required, it sends `Authorization: Bearer <token>` (chapter 5).
 - MUST explicitly end a recording it started (chapter 6).
 - MUST read `capabilities.output_formats` and ask only for formats the service produces.
-- Follows background work through jobs (chapter 11).
 - SHOULD handle a document that failed without discarding the others in the same session.
 
-The conformance test suite (chapter 16) is the executable form of these lists.
+The conformance test suite (chapter 14) is the executable form of these lists.
 
 ## 1.5 Conventions
 

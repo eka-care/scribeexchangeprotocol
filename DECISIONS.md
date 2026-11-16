@@ -39,7 +39,7 @@ Chunks are numbered from 0 and sent to a URL the service hands out (`transport`)
 A document is text the client saved in a session, in one format, with a `revision` that rises on every save. Save sends `If-Match: <revision>`; a stale one gets `409` with the current document and the client decides; `If-Match: *` skips the check. The service keeps the current content only.
 
 ## D13. Deletion of a session is required
-Every compliant service can delete a session and everything in it (sources, audio, transcripts, documents). Deleting people is the implementation's job.
+Every compliant service can delete a session and everything in it (sources, audio, chunk texts, transcripts, documents), synchronously from the client's view (`204`, then `404`). Deletion reaches the service's own store only: not copies the client took, not what the service sent to its model providers, not references from other sessions. Deleting people is the implementation's job.
 
 ## D14. Profiles add to the base
 A profile is a named extension for one field: optional fields on base objects, extra objects and routes under `/v1/profiles/{name}/`, template packs with strict output schemas. Base objects stay as they are. Discovery lists installed profiles.
@@ -47,8 +47,8 @@ A profile is a named extension for one field: optional fields on base objects, e
 ## D15. Home
 The protocol has its own repository from the start, separate from any implementation, so that its independence is visible and others can work on it without pulling a server. Implementations pin it by tag.
 
-## D16. Background work is followed by polling
-Anything that runs in the background returns a job; the client polls `GET /v1/jobs/{id}` to learn when it is done. Push notifications (webhooks and the like) are an implementation feature.
+## D16. No job object
+Everything that takes time either carries its own status (an audio source) or streams its result (generation), so the client never needs a separate ticket to poll. Push notifications (webhooks and the like) are an implementation feature.
 
 ## D17. Transcript: chunk texts while recording, one text at the end
 Each uploaded chunk gets its own text object as soon as it is transcribed, read by index; it is immutable once done, so it can be a small object in any store. When the source completes, the service writes the whole transcript once as plain text. No segment list and no paging in v0.1; speaker turns and finer timing can be added as fields later. Timestamps on a chunk: `audio_offset_ms` is position on the audio timeline (from the bytes, no clock); `received_at` is when the bytes reached the service's storage (service clock); `recorded_at` is the client's own clock, sent with `end`, stored as given.

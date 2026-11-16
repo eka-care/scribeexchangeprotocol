@@ -14,11 +14,9 @@ Written one at a time, reviewed before the next. A chapter is "done" when its ob
 | 08 | `08-transcripts.md` | Chunk text while recording, whole transcript at the end, timestamps | draft |
 | 09 | `09-templates.md` | Template: instructions, output format, optional JSON schema; create, list, delete | draft |
 | 10 | `10-documents.md` | Generate (a streamed call, nothing stored) and documents (saved text with `revision`) | draft |
-| 11 | `11-jobs.md` | Job object, status endpoint, how a client learns work is done | planned |
-| 12 | `12-deletion.md` | Delete a session and everything in it: what is removed | planned |
-| 13 | `13-errors.md` | Error shape, codes, HTTP mapping, retry guidance | planned |
-| 14 | `14-security.md` | TLS, credentials, rate limits | planned |
-| 15 | `15-profiles.md` | How a profile declares itself, where it lives, what it may add | planned |
-| 16 | `16-conformance.md` | What a server and a client must pass; the test suite | planned |
+| 11 | `11-errors.md` | Error shape, codes, HTTP mapping, retry guidance | planned |
+| 12 | `12-security.md` | TLS, credentials, rate limits | planned |
+| 13 | `13-profiles.md` | How a profile declares itself, where it lives, what it may add | planned |
+| 14 | `14-conformance.md` | What a server and a client must pass; the test suite | planned |
 
-Sixteen chapters. Users, roles, settings, administration and push notifications belong to implementations.
+Fourteen chapters. Deletion is in chapter 6; everything that runs carries its own status or streams, so there is no job object. Users, roles, settings, administration and push notifications belong to implementations.

@@ -88,7 +88,7 @@ Clients SHOULD log the `Scribe-Exchange-Deprecated` header when they first see i
 
 ## 3.6 Profiles and the base
 
-A profile has its own version and declares which base version it requires. A profile may move faster than the base. Discovery lists both (chapter 4, chapter 15).
+A profile has its own version and declares which base version it requires. A profile may move faster than the base. Discovery lists both (chapter 4, chapter 13).
 
 ## 3.7 Header names
 
