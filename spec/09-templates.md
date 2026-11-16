@@ -72,7 +72,7 @@ DELETE /v1/templates/{id}
 |---|---|---|
 | `template_not_found` | 404 | Unknown id, or not visible to this caller. |
 | `invalid_template` | 400 | Missing or malformed field; `output_format` not in discovery; `output_json_schema` given without `json`, or not a valid JSON Schema. |
-| `template_limit_reached` | 422 | `max_per_caller` hit. |
+| `template_limit_reached` | 400 | `max_per_caller` hit. |
 
 ## 9.6 Summary of endpoints
 

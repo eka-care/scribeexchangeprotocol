@@ -58,3 +58,6 @@ A template is `instructions` (plain language), an `output_format` from discovery
 
 ## D19. Generation is a streamed call; documents are saved text
 `POST /v1/sessions/{id}/generate` takes a template, optionally a model and a subset of sources, and streams the output (`started`, `delta`*, `done` | `error`). Nothing is stored; a lost stream is called again. What the client wants kept it saves as a document. The two are independent, so the protocol has no job object for generation, no export, and one format per document.
+
+## D20. One error shape, a closed code list
+Every error is `{ "error": { "code", "message", "details"? } }`; the client branches on `code`, the HTTP status is for the plumbing. The code list is closed and indexed in chapter 11; a new code is a new minor. `404` covers both "does not exist" and "not visible to you".

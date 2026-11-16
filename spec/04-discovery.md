@@ -169,7 +169,7 @@ Model identifiers are chosen by the deployment and are opaque to clients.
 | Field | Type | Meaning |
 |---|---|---|
 | `profiles[]` | object[] | Installed profiles. Empty array when none. |
-| `[].name` | string | Profile name, e.g. `medscribealliance`. |
+| `[].name` | string | Profile name, lower-case, e.g. `healthcare`. |
 | `[].version` | string | The profile's own version. |
 | `[].base_url` | URL | Where the profile's routes live, normally `{base_url}/profiles/{name}`. |
 | `[].documentation_url` | URL | Optional. |

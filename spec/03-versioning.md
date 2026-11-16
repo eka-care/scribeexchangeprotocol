@@ -46,7 +46,7 @@ Within one major version a service MUST NOT:
 - remove or rename a field or endpoint;
 - make an optional field required;
 - change a field's type or meaning;
-- add a value to a **closed** list (status values, error codes are closed; chapters 6, 10, 11, 15 say which).
+- add a value to a **closed** list (status values, error codes are closed; chapters 6, 10, 11, 13 say which).
 
 Because of this rule, **clients MUST ignore fields they do not know** and MUST NOT fail on an unknown value in an open list.
 

@@ -101,7 +101,7 @@ Content-Type: application/json
 { "content": "## Chief complaint\nHeadache for three days, no fever. Worse in the evening.\n…" }
 ```
 
-`If-Match` carries the `revision` the client started from. If it is still current, the service stores the content, raises `revision` by one and answers `200` with the document. If not, `409 revision_conflict` with the current document in the body; the client merges and tries again. `If-Match: *` skips the check and accepts last-write-wins knowingly. Without the header: `428 precondition_required`.
+`If-Match` carries the `revision` the client started from. If it is still current, the service stores the content, raises `revision` by one and answers `200` with the document. If not, `409 revision_conflict` with the current document in the body; the client merges and tries again. `If-Match: *` skips the check and accepts last-write-wins knowingly. Without the header: `400 precondition_required`.
 
 `content` MUST be of the document's `output_format`. The service keeps the current content only; earlier revisions are the client's to keep if it wants them.
 
@@ -131,7 +131,7 @@ A document's visibility is its own, not inherited from its session: a service ma
 | `content_too_large` | 413 | `content` over `max_content_bytes`. |
 | `revision_conflict` | 409 | `If-Match` is not the current revision. Body: the current document. |
 | `invalid_state` | 409 | Generate on, or create or delete a document in, an archived session. |
-| `precondition_required` | 428 | `PUT` without `If-Match`. |
+| `precondition_required` | 400 | `PUT` without `If-Match`. |
 
 ## 10.9 Summary of endpoints
 

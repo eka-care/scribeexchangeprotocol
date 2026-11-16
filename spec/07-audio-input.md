@@ -66,7 +66,7 @@ Content-Length: 18432044
 <binary audio>
 ```
 
-Under `put` the response is the source. Then `end` (6.8), which moves the source to `processing`; only the full transcript applies (chapter 8), there are no chunk objects. The service cuts the file into pieces itself where it needs to; how it cuts is its own affair. Maximum length is `max_seconds`; a longer file fails the source with `audio_too_long` in `failure`, or is refused at upload with `422 audio_too_long` under `put`.
+Under `put` the response is the source. Then `end` (6.8), which moves the source to `processing`; only the full transcript applies (chapter 8), there are no chunk objects. The service cuts the file into pieces itself where it needs to; how it cuts is its own affair. Maximum length is `max_seconds`; a longer file fails the source with `audio_too_long` in `failure`, or is refused at upload with `400 audio_too_long` under `put`.
 
 ## 7.5 Format and encoding
 
@@ -85,10 +85,10 @@ Under `put` the service answers an upload with these codes. Under `post-form` er
 
 | Code | HTTP | When |
 |---|---|---|
-| `source_not_recording` | 422 | Audio sent to an audio source that is past `recording`. |
-| `format_mismatch` | 422 | `Content-Type` differs from the source's `format`. |
-| `chunk_too_long` | 422 | Chunk longer than `max_chunk_seconds`. |
-| `audio_too_long` | 422 | File longer than `max_seconds`. |
+| `source_not_recording` | 400 | Audio sent to an audio source that is past `recording`. |
+| `format_mismatch` | 400 | `Content-Type` differs from the source's `format`. |
+| `chunk_too_long` | 400 | Chunk longer than `max_chunk_seconds`. |
+| `audio_too_long` | 400 | File longer than `max_seconds`. |
 | `payload_too_large` | 413 | Bytes beyond the service's request-size limit. |
 | `payload_required` | 400 | Empty body. |
 

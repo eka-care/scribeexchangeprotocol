@@ -28,6 +28,7 @@ Inside each file:
 | `10-generate-request.schema.json` | GenerateRequest | 10 §10.2 |
 | `10-document.schema.json` | Document | 10 §10.3 |
 | `10-document-create-request.schema.json` | DocumentCreateRequest | 10 §10.4 |
+| `11-error.schema.json` | Error | 11 §11.1 |
 
 ## Rules
 

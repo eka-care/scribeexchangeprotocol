@@ -66,7 +66,7 @@ The key words MUST, MUST NOT, REQUIRED, SHOULD, SHOULD NOT, RECOMMENDED, MAY and
 ### A conformant scribe service
 
 - MUST publish a valid discovery document at `/.well-known/scribe-exchange` (chapter 4).
-- MUST serve all endpoints marked REQUIRED under `/v1/` (chapters 5–12).
+- MUST serve all endpoints marked REQUIRED under `/v1/` (chapters 6–10).
 - MAY require authentication. If it does, it MUST accept a bearer token in the `Authorization` header and MUST say in discovery where tokens come from (chapter 5). It MAY accept other mechanisms in addition, for its own clients.
 - MUST accept the `audio` source kind with at least one input mode, `chunked` or `file`, and MUST declare every accepted source kind and its limits in discovery (chapters 4, 6, 7).
 - MAY accept other source kinds (`text`, `file`, `reference`), each declared in discovery.
@@ -82,7 +82,7 @@ The key words MUST, MUST NOT, REQUIRED, SHOULD, SHOULD NOT, RECOMMENDED, MAY and
 - Reads `auth` from discovery. When a token is required, it sends `Authorization: Bearer <token>` (chapter 5).
 - MUST explicitly end a recording it started (chapter 6).
 - MUST read `capabilities.output_formats` and ask only for formats the service produces.
-- SHOULD handle a document that failed without discarding the others in the same session.
+- Consumes a generation stream to its end and, on a lost connection, calls again (chapter 10).
 
 The conformance test suite (chapter 14) is the executable form of these lists.
 

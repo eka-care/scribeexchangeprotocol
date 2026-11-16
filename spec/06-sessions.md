@@ -124,7 +124,7 @@ The body depends on the kind:
 | `file` | `multipart/form-data` with a `source` part (JSON: `{ "kind": "file" }`) and a `file` part (the bytes, with its `Content-Type` and filename). Or JSON `{ "kind": "file", "url": "https://…" }` if discovery says `url_fetch: true`. | `201`, `ready` (or `processing` then `ready` for a URL fetch). |
 | `reference` | JSON: `{ "kind": "reference", "session_id": "…" }` or `{ "kind": "reference", "document_id": "…" }` | `201`, `ready`. |
 
-Refused with `422 source_limit_reached` when the session already holds the maximum for that kind or in total, and `422 kind_not_supported` for a kind not in discovery. Refused with `409 invalid_state` on an `archived` session.
+Refused with `400 source_limit_reached` when the session already holds the maximum for that kind or in total, and `400 kind_not_supported` for a kind not in discovery. Refused with `409 invalid_state` on an `archived` session.
 
 Adding an audio source, in full:
 
@@ -273,7 +273,7 @@ For `input: file`, `end` after the upload moves the source to `processing`; `gap
 
 | Situation | Result |
 |---|---|
-| Recording reached `capabilities.sources.kinds.audio.max_seconds`; later chunks refused with `422 source_not_recording`. | `processing` → `success`, warning `max_duration_reached` |
+| Recording reached `capabilities.sources.kinds.audio.max_seconds`; later chunks refused with `400 source_not_recording`. | `processing` → `success`, warning `max_duration_reached` |
 | No chunk for `capabilities.sources.kinds.audio.inactivity_seconds` while `recording`. | `processing` → `success`, warning `auto_ended` |
 | No chunk ever, and `inactivity_seconds` passed while `created`. | `cancelled`, `cancel_reason: no_audio` |
 | Session archived while `recording`. | as if `end` were called |
@@ -308,10 +308,10 @@ The client says which kinds it can handle with `transports` on the create reques
 | `metadata_too_large` | 400 | > 4 KB. |
 | `invalid_request` | 400 | `PATCH` with no known field, or `status` other than `archived`. |
 | `invalid_source` | 400 | Malformed source request; `format`, `language_hint` or `stt_model` not in discovery; `transports` without a kind the service offers; `reference` to an unknown object. |
-| `kind_not_supported` | 422 | Kind not in `capabilities.sources.kinds`. |
-| `source_limit_reached` | 422 | Per-kind or total limit hit. |
-| `source_too_large` | 422 | `text` over `max_chars`, `file` over `max_bytes`, or a content type not accepted. |
-| `source_not_recording` | 422 | `end` on an audio source not in `created` or `recording`, or audio sent to one when the service hosts the upload URL. |
+| `kind_not_supported` | 400 | Kind not in `capabilities.sources.kinds`. |
+| `source_limit_reached` | 400 | Per-kind or total limit hit. |
+| `source_too_large` | 400 | `text` over `max_chars`, `file` over `max_bytes`, or a content type not accepted. |
+| `source_not_recording` | 400 | `end` on an audio source not in `created` or `recording`, or audio sent to one when the service hosts the upload URL. |
 | `invalid_state` | 409 | Action not allowed now (add to or patch an archived session, cancel after end). |
 
 ## 6.11 What deletion means
