@@ -1,0 +1,249 @@
+# Endpoint list for the OpenAPI generator (tools/gen_openapi.py).
+# One entry per operation. Keys:
+#   method, path, summary, chapter
+#   params:   path/query parameters [{name, in, type, description, required}]
+#   if_match: true when the If-Match header is required
+#   request:  schema name (file stem in schemas/), or omit
+#   response: {status, schema} | {status, stream: true} | {status} for no body
+#   errors:   list of codes the chapter names, resolved to statuses from the code table below
+# Error codes -> HTTP status (chapter 11, §11.3).
+codes:
+  unsupported_version: 400
+  invalid_request: 400
+  invalid_source: 400
+  invalid_template: 400
+  metadata_too_large: 400
+  payload_required: 400
+  kind_not_supported: 400
+  source_limit_reached: 400
+  source_too_large: 400
+  source_not_recording: 400
+  format_mismatch: 400
+  chunk_too_long: 400
+  audio_too_long: 400
+  template_limit_reached: 400
+  precondition_required: 400
+  authentication_failed: 401
+  token_expired: 401
+  forbidden: 403
+  session_not_found: 404
+  source_not_found: 404
+  chunk_not_found: 404
+  template_not_found: 404
+  document_not_found: 404
+  invalid_state: 409
+  revision_conflict: 409
+  payload_too_large: 413
+  content_too_large: 413
+  rate_limited: 429
+  internal_error: 500
+  unavailable: 503
+
+common_params:
+  id:  {name: id,  in: path, type: string, description: Session id (ULID).}
+  sid: {name: sid, in: path, type: string, description: Source id (ULID).}
+  did: {name: did, in: path, type: string, description: Document id (ULID).}
+  tid: {name: id,  in: path, type: string, description: Template id (ULID).}
+  n:   {name: n,   in: path, type: integer, description: Chunk index, from 0.}
+  page:
+    - {name: limit,  in: query, type: integer, description: Page size, default 50, max 200.}
+    - {name: cursor, in: query, type: string,  description: Opaque cursor from the previous page.}
+
+endpoints:
+  - method: get
+    path: /.well-known/scribe-exchange
+    summary: Discovery document
+    chapter: 4
+    no_auth: true
+    no_version: true
+    response: {status: 200, schema: 04-discovery}
+
+  - method: post
+    path: /v1/sessions
+    summary: Create a session
+    chapter: 6
+    request: 06-session-create-request
+    response: {status: 201, schema: 06-session}
+    errors: [metadata_too_large]
+  - method: get
+    path: /v1/sessions
+    summary: List sessions visible to the caller
+    chapter: 6
+    params:
+      - {name: status, in: query, type: string, description: active or archived.}
+      - {name: created_after,  in: query, type: string, description: ISO 8601 timestamp.}
+      - {name: created_before, in: query, type: string, description: ISO 8601 timestamp.}
+      - $page
+    response: {status: 200, list_of: 06-session}
+  - method: get
+    path: /v1/sessions/{id}
+    summary: Get a session with its sources
+    chapter: 6
+    params: [$id]
+    response: {status: 200, schema: 06-session}
+    errors: [session_not_found]
+  - method: patch
+    path: /v1/sessions/{id}
+    summary: Replace metadata and/or archive
+    chapter: 6
+    params: [$id]
+    request: 06-session-update-request
+    response: {status: 200, schema: 06-session}
+    errors: [session_not_found, invalid_request, metadata_too_large, invalid_state]
+  - method: delete
+    path: /v1/sessions/{id}
+    summary: Delete a session and everything in it
+    chapter: 6
+    params: [$id]
+    response: {status: 204}
+    errors: [session_not_found]
+
+  - method: post
+    path: /v1/sessions/{id}/sources
+    summary: Add a source
+    chapter: 6
+    params: [$id]
+    request: 06-source-create-request
+    multipart: true
+    response: {status: 201, schema: 06-source}
+    errors: [session_not_found, invalid_source, kind_not_supported, source_limit_reached, source_too_large, invalid_state]
+  - method: get
+    path: /v1/sessions/{id}/sources
+    summary: List sources
+    chapter: 6
+    params: [$id]
+    response: {status: 200, list_of: 06-source}
+    errors: [session_not_found]
+  - method: get
+    path: /v1/sessions/{id}/sources/{sid}
+    summary: Get a source
+    chapter: 6
+    params: [$id, $sid]
+    response: {status: 200, schema: 06-source}
+    errors: [session_not_found, source_not_found]
+  - method: delete
+    path: /v1/sessions/{id}/sources/{sid}
+    summary: Delete a source and what was derived from it
+    chapter: 6
+    params: [$id, $sid]
+    response: {status: 204}
+    errors: [session_not_found, source_not_found]
+  - method: post
+    path: /v1/sessions/{id}/sources/{sid}/end
+    summary: End a recording
+    chapter: 6
+    params: [$id, $sid]
+    request_inline:
+      type: object
+      properties:
+        chunks_total: {type: integer, minimum: 1, description: How many chunks were sent in all.}
+        recorded_at:
+          type: object
+          additionalProperties: {type: string, format: date-time}
+          description: Client clock per chunk index.
+    response: {status: 200, schema: 06-source-end-response}
+    errors: [session_not_found, source_not_found, source_not_recording]
+  - method: post
+    path: /v1/sessions/{id}/sources/{sid}/cancel
+    summary: Cancel a recording
+    chapter: 6
+    params: [$id, $sid]
+    response: {status: 200, schema: 06-source}
+    errors: [session_not_found, source_not_found, invalid_state]
+
+  - method: get
+    path: /v1/sessions/{id}/sources/{sid}/transcript/chunks/{n}
+    summary: Text of one chunk
+    chapter: 8
+    params: [$id, $sid, $n]
+    response: {status: 200, schema: 08-transcript-chunk}
+    errors: [session_not_found, source_not_found, chunk_not_found]
+  - method: get
+    path: /v1/sessions/{id}/sources/{sid}/transcript
+    summary: The whole transcript
+    chapter: 8
+    params: [$id, $sid]
+    response: {status: 200, schema: 08-transcript}
+    errors: [session_not_found, source_not_found, invalid_state]
+
+  - method: post
+    path: /v1/templates
+    summary: Create a template
+    chapter: 9
+    request: 09-template-create-request
+    response: {status: 201, schema: 09-template}
+    errors: [invalid_template, template_limit_reached]
+  - method: get
+    path: /v1/templates
+    summary: List templates
+    chapter: 9
+    params: [$page]
+    response: {status: 200, list_of: 09-template}
+  - method: get
+    path: /v1/templates/{id}
+    summary: Get a template
+    chapter: 9
+    params: [$tid]
+    response: {status: 200, schema: 09-template}
+    errors: [template_not_found]
+  - method: delete
+    path: /v1/templates/{id}
+    summary: Delete a template
+    chapter: 9
+    params: [$tid]
+    response: {status: 204}
+    errors: [template_not_found]
+
+  - method: post
+    path: /v1/sessions/{id}/generate
+    summary: Apply a template to the session's sources; streams the output
+    chapter: 10
+    params: [$id]
+    request: 10-generate-request
+    response: {status: 200, stream: true}
+    errors: [session_not_found, template_not_found, invalid_request, invalid_state]
+
+  - method: post
+    path: /v1/sessions/{id}/documents
+    summary: Save a new document
+    chapter: 10
+    params: [$id]
+    request: 10-document-create-request
+    response: {status: 201, schema: 10-document}
+    errors: [session_not_found, invalid_request, content_too_large, invalid_state]
+  - method: get
+    path: /v1/sessions/{id}/documents
+    summary: List the session's documents
+    chapter: 10
+    params: [$id, $page]
+    response: {status: 200, list_of: 10-document}
+    errors: [session_not_found]
+  - method: get
+    path: /v1/sessions/{id}/documents/{did}
+    summary: Get a document
+    chapter: 10
+    params: [$id, $did]
+    response: {status: 200, schema: 10-document}
+    errors: [document_not_found]
+  - method: put
+    path: /v1/sessions/{id}/documents/{did}
+    summary: Save the document's content
+    chapter: 10
+    params: [$id, $did]
+    if_match: true
+    request_inline:
+      type: object
+      required: [content]
+      properties:
+        content:
+          type: [string, object]
+          description: The whole content, in the document's output_format.
+    response: {status: 200, schema: 10-document}
+    errors: [document_not_found, invalid_request, content_too_large, revision_conflict, precondition_required]
+  - method: delete
+    path: /v1/sessions/{id}/documents/{did}
+    summary: Delete a document
+    chapter: 10
+    params: [$id, $did]
+    response: {status: 204}
+    errors: [document_not_found, invalid_state]

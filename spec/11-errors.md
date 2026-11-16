@@ -85,7 +85,7 @@ Codes that arrive inside a stream rather than as an HTTP response: `generation_f
 
 ## 11.4 Retrying
 
-- A `5xx`, or a dropped connection with no response, MAY be retried with exponential backoff, starting at one second, at most five times. Uploads of chunks and saves with `If-Match` are safe to repeat: a chunk index is idempotent, and a stale `If-Match` is refused rather than applied twice.
+- A `5xx`, or a dropped connection with no response, MAY be retried based on the service's capabilities / instructions. Uploads of chunks and saves with `If-Match` are safe to repeat: a chunk index is idempotent, and a stale `If-Match` is refused rather than applied twice.
 - A `429` or `503` with `Retry-After` is retried no sooner than the header says.
 - A `4xx` other than those is not retried unchanged; the table in 11.3 says what has to change first.
 
