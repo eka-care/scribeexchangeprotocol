@@ -61,10 +61,9 @@ GET /.well-known/scribe-exchange
         "reference": { "max": 10 }
       }
     },
-    "document_history": false,
-    "document_forms": ["json", "markdown"],
-    "document_delivery": ["poll"],
-    "export_formats": ["markdown", "pdf"]
+    "templates": { "max_instruction_chars": 20000, "max_per_caller": 100 },
+    "documents": { "max_content_bytes": 1048576 },
+    "output_formats": ["markdown", "json"]
   },
 
   "models": {
@@ -139,10 +138,9 @@ Required unless marked optional. "Closed list" means only the listed values are 
 | `sources.kinds.file.max_bytes` | integer | Largest file. |
 | `sources.kinds.file.content_types` | string[] | Accepted MIME types for files. |
 | `sources.kinds.file.url_fetch` | boolean | Whether a file may be given as a URL for the service to fetch, instead of uploaded. |
-| `document_history` | boolean | Whether the service keeps old revisions of documents and serves them (chapter 10). `false` means only the current content is kept. |
-| `document_forms` | string[] | Open list, at least one. The forms **every** document from this service carries (chapter 10). Known ids: `markdown`, `json` (typed sections), `html`, `text`. A deployment may add its own (an editor's native form, for example). A client reads this list and works with what is there. |
-| `document_delivery` | string[] | Open list: `poll` (always present), `stream` (reserved). How a client can learn a document is ready. |
-| `export_formats` | string[] | Open list, at least one. Export formats available (`markdown`, `pdf`, `docx`, …); depends on the deployment's exporters. |
+| `templates` | object | `max_instruction_chars`: longest `instructions` accepted. `max_per_caller`: how many templates one caller may hold (chapter 9). |
+| `documents` | object | `max_content_bytes`: largest document `content`, and the most a generation will produce (chapter 10). |
+| `output_formats` | string[] | Open list, at least one. The formats a template may ask for and a document may hold (chapters 9, 10). Known ids: `markdown`, `json`, `text`, `html`. |
 
 ### `models`
 
@@ -171,7 +169,7 @@ Model identifiers are chosen by the deployment and are opaque to clients.
 | Field | Type | Meaning |
 |---|---|---|
 | `profiles[]` | object[] | Installed profiles. Empty array when none. |
-| `[].name` | string | Profile name, e.g. `medscribealliance`. |
+| `[].name` | string | Profile name, lower-case, e.g. `healthcare`. |
 | `[].version` | string | The profile's own version. |
 | `[].base_url` | URL | Where the profile's routes live, normally `{base_url}/profiles/{name}`. |
 | `[].documentation_url` | URL | Optional. |
@@ -184,7 +182,7 @@ A profile MAY add further keys inside its own entry. It MUST NOT add keys at the
 2. Read `auth`. If it is `null`, call freely; otherwise get a token from one of `auth.authorization_servers` (chapter 5).
 3. Before offering ways to add material, read `sources.kinds`: which kinds exist, how many of each, and for audio which `input` modes and `formats` are accepted and the `max_chunk_seconds`.
 4. Before offering a model choice, read `models.stt` and `models.structuring`.
-5. Read `document_forms` to know what every document will carry, and `export_formats` to know what to offer in an export menu.
+5. Read `output_formats` to know which formats templates and documents may use.
 6. If it needs a profile, check `profiles[]` for the name and version.
 
 

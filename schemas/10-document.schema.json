@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:scribe-exchange:schema:document",
+  "$comment": "Defined in spec/10-documents.md §10.3 (Scribe Exchange Protocol v0.1)",
+  "title": "Document",
+  "description": "Text saved in a session, in one format. revision rises on every save and guards concurrent writes.",
+  "type": "object",
+  "required": [
+    "id",
+    "session_id",
+    "output_format",
+    "content",
+    "revision",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "session_id": {
+      "type": "string",
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "output_format": {
+      "type": "string"
+    },
+    "content": {
+      "type": [
+        "string",
+        "object"
+      ],
+      "description": "string for markdown/text/html, object for json."
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "additionalProperties": false
+}

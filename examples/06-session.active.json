@@ -60,9 +60,8 @@
       ],
       "failure": null,
       "cancel_reason": null,
-      "transcript_id": "01J9ZM9Q8R7S6T5V4W3X2Y1Z0A",
       "transport": null,
-      "audio_url": "https://scribe.example.com/v1/sessions/01J9ZM1A2B3C4D5E6F7G8H9J0K/sources/01J9ZN7B8C9D0E1F2G3H4J5K6M/audio"
+      "format": "audio/webm;codecs=opus"
     },
     {
       "id": "01J9ZP0E1F2G3H4J5K6M7N8P9Q",

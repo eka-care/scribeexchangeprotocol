@@ -13,12 +13,14 @@ The protocol is vendor-neutral and field-neutral. Any server may implement it; a
 | `spec/` | Numbered Markdown chapters, in plain words. Each object and endpoint is described in prose with its fields. Start at `spec/01-introduction.md`; the chapter plan is `spec/README.md`. | People |
 | `schemas/` | One JSON Schema file per object. **The machine source of truth**: if prose and schema disagree, the schema wins and the prose is fixed. | Programs, and people checking exact shapes |
 | `examples/` | Valid example payloads. Every example is checked against its schema in CI. | Both |
-| `openapi.yaml` | Generated from `schemas/` plus the endpoint list. Never edited by hand. | Tools |
+| `openapi.yaml` | Generated from `schemas/` plus `tools/endpoints.yaml` by `tools/gen_openapi.py`. Never edited by hand. | Tools |
 | `DECISIONS.md` | Why the protocol is the way it is, one numbered entry per decision. | Contributors |
 
 ## Checking
 
-`python3 validate.py` checks every file in `examples/` against its schema (needs `pip install jsonschema referencing`). CI runs it on every change.
+`python3 validate.py` checks every file in `examples/` against its schema (needs `pip install jsonschema referencing`).
+
+`python3 tools/gen_openapi.py` regenerates `openapi.yaml` from the schemas and `tools/endpoints.yaml` and validates it (needs `pip install pyyaml openapi-spec-validator`); `--check` fails if the committed file is stale. Run both after changing a schema or an endpoint. CI runs both on every change.
 
 ## Rules
 

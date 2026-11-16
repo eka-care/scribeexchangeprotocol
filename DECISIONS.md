@@ -30,16 +30,16 @@ A service MAY require authentication; discovery says so (`auth: null` or an obje
 A session is `active | archived` and stays active until archived; archiving is `PATCH` with `status: archived`, the same call that replaces `metadata`. Once archived, everything in it is read-only. Everything put in is a **source** with a `kind` from an open list; v0.1 defines `audio`, `text`, `file`, `reference`. Only `audio` has a lifecycle (`created → recording → processing → success | failed | cancelled`); others are `ready | failed`. Any number of sources, any time while active; a second recording is a second audio source. Sources are immutable, so a document's record of which sources it used stays true. A `text` source carries its text; a `file` source carries a URL for its bytes. What a service does with a text/file/reference when writing is implementation.
 
 ## D10. Audio lifecycle
-Chunks are numbered from 0 and sent to a URL the service hands out (`transport`); the client uses the URL as given. The protocol fixes no upload path: the URL may be the service's own API or a pre-signed object-store URL, and the client cannot tell the difference. The response to an upload is not part of the protocol; `end` is the one call after the bytes, for every transport, and its `gaps` answer is how the client learns what arrived. Audio format is declared per chunk with `Content-Type`; all chunks of one recording share it. `end` carries an optional `chunks_total`; the service answers with what it has and the gaps; the client fills gaps and ends again. The service ends a recording itself at the maximum length or after inactivity and processes what it has, with a warning; a recording that received no audio is `cancelled` (`no_audio`). Two models are chosen separately: `stt_model` on the audio source, the structuring model on the document.
+Chunks are numbered from 0 and sent to a URL the service hands out (`transport`); the client uses the URL as given. The protocol fixes no upload path. Two transport kinds: `put` (under the service's API, every service offers it) and `post-form` (straight to an object store, a service's option); the client lists what it can handle and the service picks. Under `put` the upload response is the chunk object; under `post-form` it is the store's. `end` is the one call after the bytes, for every transport, and its `gaps` answer is how the client learns what arrived. The audio format is fixed on the source at creation and carried on every upload as `Content-Type`. `end` carries an optional `chunks_total`; the service answers with what it has and the gaps; the client fills gaps and ends again. The service ends a recording itself at the maximum length or after inactivity and processes what it has, with a warning; a recording that received no audio is `cancelled` (`no_audio`). Two models are chosen separately: `stt_model` on the audio source, the structuring model on the document.
 
 ## D11. One status vocabulary
 `success | failed` for things that run (audio sources, documents, jobs); `cancelled` for a recording with no result; `ready` for sources that need no work; `active | archived` for sessions. Problems that did not stop a thing are carried as `warnings[]`.
 
 ## D12. Documents: current content and a revision number
-A document holds its current content plus a `revision` that rises on every save. Save sends `If-Match: <revision>`; a stale one gets `409` with the current revision and the client decides; `If-Match: *` skips the check. `document.saved` fires on every save so clients or plugins may keep history; a service that keeps it says `document_history: true`.
+A document is text the client saved in a session, in one format, with a `revision` that rises on every save. Save sends `If-Match: <revision>`; a stale one gets `409` with the current document and the client decides; `If-Match: *` skips the check. The service keeps the current content only.
 
 ## D13. Deletion of a session is required
-Every compliant service can delete a session and everything in it (sources, audio, transcripts, documents). Deleting people is the implementation's job.
+Every compliant service can delete a session and everything in it (sources, audio, chunk texts, transcripts, documents), synchronously from the client's view (`204`, then `404`). Deletion reaches the service's own store only: not copies the client took, not what the service sent to its model providers, not references from other sessions. Deleting people is the implementation's job.
 
 ## D14. Profiles add to the base
 A profile is a named extension for one field: optional fields on base objects, extra objects and routes under `/v1/profiles/{name}/`, template packs with strict output schemas. Base objects stay as they are. Discovery lists installed profiles.
@@ -47,5 +47,17 @@ A profile is a named extension for one field: optional fields on base objects, e
 ## D15. Home
 The protocol has its own repository from the start, separate from any implementation, so that its independence is visible and others can work on it without pulling a server. Implementations pin it by tag.
 
-## D16. Background work is followed by polling
-Anything that runs in the background returns a job; the client polls `GET /v1/jobs/{id}` to learn when it is done. Push notifications (webhooks and the like) are an implementation feature.
+## D16. No job object
+Everything that takes time either carries its own status (an audio source) or streams its result (generation), so the client never needs a separate ticket to poll. Push notifications (webhooks and the like) are an implementation feature.
+
+## D17. Transcript: chunk texts while recording, one text at the end
+Each uploaded chunk gets its own text object as soon as it is transcribed, read by index; it is immutable once done, so it can be a small object in any store. When the source completes, the service writes the whole transcript once as plain text. No segment list and no paging in v0.1; speaker turns and finer timing can be added as fields later. Timestamps on a chunk: `audio_offset_ms` is position on the audio timeline (from the bytes, no clock); `received_at` is when the bytes reached the service's storage (service clock); `recorded_at` is the client's own clock, sent with `end`, stored as given.
+
+## D18. Templates are instructions plus an output format
+A template is `instructions` (plain language), an `output_format` from discovery's open list (`markdown`, `json`, `text`, `html`), and for `json` an optional `output_json_schema` the output must satisfy. Immutable. Sections, output language and the like live in the instructions; fields for them can be added later.
+
+## D19. Generation is a streamed call; documents are saved text
+`POST /v1/sessions/{id}/generate` takes a template, optionally a model and a subset of sources, and streams the output (`started`, `delta`*, `done` | `error`). Nothing is stored; a lost stream is called again. What the client wants kept it saves as a document. The two are independent, so the protocol has no job object for generation, no export, and one format per document.
+
+## D20. One error shape, a closed code list
+Every error is `{ "error": { "code", "message", "details"? } }`; the client branches on `code`, the HTTP status is for the plumbing. The code list is closed and indexed in chapter 11; a new code is a new minor. `404` covers both "does not exist" and "not visible to you".

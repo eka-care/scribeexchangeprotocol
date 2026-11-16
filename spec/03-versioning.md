@@ -17,7 +17,7 @@ Stability is promised from `1.0`: from then on the additive rule below is a guar
 
 ## 3.2 The version is in the path
 
-Every endpoint lives under `/v{MAJOR}/`: `/v1/sessions`, `/v1/documents/{id}`. A breaking change means a new prefix (`/v2/`) served alongside the old one for the deprecation period.
+Every endpoint lives under `/v{MAJOR}/`: `/v1/sessions`, `/v1/templates/{id}`. A breaking change means a new prefix (`/v2/`) served alongside the old one for the deprecation period.
 
 Minor versions are additive, so any `1.x` client works against any `1.y` server. A client that wants to pin a minor MAY send:
 
@@ -46,7 +46,7 @@ Within one major version a service MUST NOT:
 - remove or rename a field or endpoint;
 - make an optional field required;
 - change a field's type or meaning;
-- add a value to a **closed** list (status values, error codes are closed; chapters 6, 10, 11, 15 say which).
+- add a value to a **closed** list (status values, error codes are closed; chapters 6, 10, 11, 13 say which).
 
 Because of this rule, **clients MUST ignore fields they do not know** and MUST NOT fail on an unknown value in an open list.
 
@@ -88,7 +88,7 @@ Clients SHOULD log the `Scribe-Exchange-Deprecated` header when they first see i
 
 ## 3.6 Profiles and the base
 
-A profile has its own version and declares which base version it requires. A profile may move faster than the base. Discovery lists both (chapter 4, chapter 15).
+A profile has its own version and declares which base version it requires. A profile may move faster than the base. Discovery lists both (chapter 4, chapter 13).
 
 ## 3.7 Header names
 

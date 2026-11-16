@@ -53,18 +53,16 @@
         }
       }
     },
-    "document_history": false,
-    "document_forms": [
-      "json",
-      "markdown"
-    ],
-    "document_delivery": [
-      "poll",
-      "webhook"
-    ],
-    "export_formats": [
+    "templates": {
+      "max_instruction_chars": 20000,
+      "max_per_caller": 100
+    },
+    "documents": {
+      "max_content_bytes": 1048576
+    },
+    "output_formats": [
       "markdown",
-      "pdf"
+      "json"
     ]
   },
   "models": {
@@ -77,10 +75,6 @@
           "hi",
           "ta"
         ],
-        "features": {
-          "timestamps": true,
-          "diarization": false
-        },
         "default": true
       }
     ],
@@ -88,17 +82,11 @@
       {
         "id": "llama-3.3-70b",
         "display_name": "Llama 3.3 70B (local)",
-        "features": {
-          "streaming": false
-        },
         "default": true
       },
       {
         "id": "claude-sonnet",
-        "display_name": "Claude Sonnet",
-        "features": {
-          "streaming": true
-        }
+        "display_name": "Claude Sonnet"
       }
     ]
   },

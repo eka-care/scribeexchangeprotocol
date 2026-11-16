@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:scribe-exchange:schema:transcript-chunk",
+  "$comment": "Defined in spec/08-transcripts.md \u00a78.2 (Scribe Exchange Protocol v0.1)",
+  "title": "TranscriptChunk",
+  "description": "The text of one uploaded chunk. Returned by GET .../sources/{sid}/transcript/chunks/{n} and, under the put transport, as the response to the upload itself. Immutable once success.",
+  "type": "object",
+  "required": [
+    "index",
+    "status",
+    "audio_offset_ms",
+    "received_at",
+    "recorded_at",
+    "text"
+  ],
+  "properties": {
+    "index": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "queued",
+        "success",
+        "failed"
+      ]
+    },
+    "audio_offset_ms": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0,
+      "description": "Start of this chunk on the audio timeline: summed length of chunks 0..n-1. null while an earlier chunk is missing."
+    },
+    "received_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the bytes reached the service's storage (service clock)."
+    },
+    "recorded_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "Client clock for when the chunk was recorded, as sent with end. null until then."
+    },
+    "text": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "null unless success."
+    }
+  },
+  "additionalProperties": false
+}

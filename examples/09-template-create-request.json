@@ -1,0 +1,5 @@
+{
+  "name": "OPD consultation note",
+  "instructions": "Write a consultation note in English with the headings Chief complaint, History, Examination, Assessment, Plan. Use only what was said; leave a heading empty rather than guess. Record drug names and doses exactly as spoken.",
+  "output_format": "markdown"
+}

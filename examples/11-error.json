@@ -1,0 +1,9 @@
+{
+  "error": {
+    "code": "revision_conflict",
+    "message": "Document is at revision 3; you sent If-Match: 2.",
+    "details": {
+      "current_revision": 3
+    }
+  }
+}

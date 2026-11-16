@@ -51,9 +51,35 @@
       "type": "string",
       "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
       "description": "reference: an earlier document."
+    },
+    "format": {
+      "type": "string",
+      "description": "audio: MIME type of the audio, one of discovery formats. Required for audio."
+    },
+    "transports": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "description": "audio: transport kinds the client can handle, in order of preference. Default [\"put\"]."
     }
   },
   "allOf": [
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "audio"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "format"
+        ]
+      }
+    },
     {
       "if": {
         "properties": {

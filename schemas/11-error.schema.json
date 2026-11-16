@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:scribe-exchange:schema:error",
+  "$comment": "Defined in spec/11-errors.md \u00a711.1 (Scribe Exchange Protocol v0.1)",
+  "title": "Error",
+  "description": "Body of every error response (HTTP 400 and above).",
+  "type": "object",
+  "required": [
+    "error"
+  ],
+  "properties": {
+    "error": {
+      "type": "object",
+      "required": [
+        "code",
+        "message"
+      ],
+      "properties": {
+        "code": {
+          "type": "string",
+          "description": "Closed list, spec/11-errors.md \u00a711.3."
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "description": "Extra facts; the defining chapter says what."
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
